@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "NetworkBattleships (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "NetworkBattleships (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
