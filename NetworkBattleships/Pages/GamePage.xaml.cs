@@ -27,6 +27,48 @@ namespace NetworkBattleships.Pages
         {
             this.InitializeComponent();
             Connector._GamePage = this;
+
+            int FieldSide = 10;
+            int CellSize = 50;
+            for (int i = 0; i < FieldSide; i++)
+            {
+                RowDefinition rd = new RowDefinition();
+                rd.Height = new GridLength(CellSize, GridUnitType.Pixel);
+                PlayerGrid.RowDefinitions.Add(rd);
+                rd = new RowDefinition();
+                rd.Height = new GridLength(CellSize, GridUnitType.Pixel);
+                OpponentGrid.RowDefinitions.Add(rd);
+                ColumnDefinition cd = new ColumnDefinition();
+                cd.Width = new GridLength(CellSize, GridUnitType.Pixel);
+                PlayerGrid.ColumnDefinitions.Add(cd);
+                cd = new ColumnDefinition();
+                cd.Width = new GridLength(CellSize, GridUnitType.Pixel);
+                OpponentGrid.ColumnDefinitions.Add(cd);
+            }
+
+            int ButtonSize = CellSize - 5;
+            for (int i = 0; i < FieldSide; i++)
+            {
+                for (int j = 0; j < FieldSide; j++)
+                {
+                    Button bt = new Button
+                    {
+                        Width = ButtonSize,
+                        Height = ButtonSize
+                    };
+                    Grid.SetRow(bt,i);
+                    Grid.SetColumn(bt,j);
+                    PlayerGrid.Children.Add(bt);
+                    bt = new Button
+                    {
+                        Width = ButtonSize,
+                        Height = ButtonSize
+                    };
+                    Grid.SetRow(bt, i);
+                    Grid.SetColumn(bt, j);
+                    OpponentGrid.Children.Add(bt);
+                }
+            }
         }
     }
 }

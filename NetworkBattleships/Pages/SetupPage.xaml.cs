@@ -55,25 +55,25 @@ namespace NetworkBattleships.Pages
             int received_bytes = Connection.Receive(buffer);
         }
     
-        Socket currentSocket;
-        private Socket clientSocket;
+        public Socket CurrentSocket;
+        public Socket ClientSocket;
 
         private void OpenServer(object sender, RoutedEventArgs e)
         {
             Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
-            currentSocket = server;
-            currentSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(ServerPort.Text)));
-            currentSocket.Listen(10);
-            clientSocket = currentSocket.Accept();
-            transfer(clientSocket, "Welcome from Server!");
+            CurrentSocket = server;
+            CurrentSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(ServerPort.Text)));
+            CurrentSocket.Listen(10);
+            ClientSocket = CurrentSocket.Accept();
+            transfer(ClientSocket, "Welcome from Server!");
         }
 
         public void OpenClient(object sender, RoutedEventArgs routedEventArgs)
         {
             Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
-            currentSocket = client;
-            currentSocket.Connect(IPAddress.Parse(ClientIp.Text), int.Parse(ClientPort.Text));
-            transfer(currentSocket, "Hello from Client!");
+            CurrentSocket = client;
+            CurrentSocket.Connect(IPAddress.Parse(ClientIp.Text), int.Parse(ClientPort.Text));
+            transfer(CurrentSocket, "Hello from Client!");
         }
 
         public SetupPage()
