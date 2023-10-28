@@ -18,22 +18,22 @@ namespace NetworkBattleships.Pages
     public sealed partial class SetupPage : Page
     {
         
-        private void getIPs()
+        private void GetIPs()
         {
-            var found_ips = new List<IPAddress>();
+            var foundIps = new List<IPAddress>();
             var host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (var ip in host.AddressList)
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    found_ips.Add(ip);
+                    foundIps.Add(ip);
                 }
             }
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("Current IP addresses:");
             sb.AppendLine("local:");
-            foreach (var ip in found_ips)
+            foreach (var ip in foundIps)
             {
                 sb.AppendLine($"\t{ip.ToString()}");
             }
@@ -41,18 +41,18 @@ namespace NetworkBattleships.Pages
             string url = "https://api.ipify.org";
         
             HttpClient httpClient = new HttpClient();
-            string mainIP = httpClient.GetStringAsync(url).Result;
+            string mainIp = httpClient.GetStringAsync(url).Result;
         
             sb.AppendLine("public:");
-            sb.AppendLine($"\t{mainIP}");
+            sb.AppendLine($"\t{mainIp}");
             IpTextBlock.Text = sb.ToString();
         }
     
-        private async void transfer(Socket Connection, string message)
+        private static async void Transfer(Socket connection, string message)
         {
-            Connection.SendAsync(Encoding.Default.GetBytes(message), SocketFlags.None);
+            connection.SendAsync(Encoding.Default.GetBytes(message), SocketFlags.None);
             byte[] buffer = new byte[1024];
-            int received_bytes = Connection.Receive(buffer);
+            int receivedBytes = connection.Receive(buffer);
         }
     
         public Socket CurrentSocket;
@@ -65,7 +65,7 @@ namespace NetworkBattleships.Pages
             CurrentSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(ServerPort.Text)));
             CurrentSocket.Listen(10);
             ClientSocket = CurrentSocket.Accept();
-            transfer(ClientSocket, "Welcome from Server!");
+            Transfer(ClientSocket, "Welcome from Server!");
         }
 
         public void OpenClient(object sender, RoutedEventArgs routedEventArgs)
@@ -73,14 +73,14 @@ namespace NetworkBattleships.Pages
             Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
             CurrentSocket = client;
             CurrentSocket.Connect(IPAddress.Parse(ClientIp.Text), int.Parse(ClientPort.Text));
-            transfer(CurrentSocket, "Hello from Client!");
+            Transfer(CurrentSocket, "Hello from Client!");
         }
 
         public SetupPage()
         {
             this.InitializeComponent();
             Connector._SetupPage = this;
-            getIPs();
+            GetIPs();
         }
 
         private void NextPage(object sender, RoutedEventArgs e)

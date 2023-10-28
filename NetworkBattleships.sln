@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34212.112
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkBattleships", "NetworkBattleships\NetworkBattleships.csproj", "{21DDA1FF-CBC8-4BDE-9E38-530D455A03AC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BattleshipsModel", "BattleshipsModel\BattleshipsModel.csproj", "{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -33,6 +35,18 @@ Global
 		{21DDA1FF-CBC8-4BDE-9E38-530D455A03AC}.Release|x86.ActiveCfg = Release|x86
 		{21DDA1FF-CBC8-4BDE-9E38-530D455A03AC}.Release|x86.Build.0 = Release|x86
 		{21DDA1FF-CBC8-4BDE-9E38-530D455A03AC}.Release|x86.Deploy.0 = Release|x86
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Debug|x64.Build.0 = Debug|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Debug|x86.Build.0 = Debug|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Release|ARM64.Build.0 = Release|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Release|x64.ActiveCfg = Release|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Release|x64.Build.0 = Release|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Release|x86.ActiveCfg = Release|Any CPU
+		{ADCDDB50-DA66-4E4F-8194-7D4E0BA2F12F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

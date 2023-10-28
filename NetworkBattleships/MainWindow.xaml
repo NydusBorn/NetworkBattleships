@@ -12,7 +12,8 @@
     MinHeight="800"
     MinWidth="1600"
     Width="1800"
-    Height="1000">
+    Height="1000"
+    Title="Network Battleships">
     <winUiEx:WindowEx.SystemBackdrop>
         <MicaBackdrop />
     </winUiEx:WindowEx.SystemBackdrop>
@@ -23,7 +24,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0" x:Name="AppTitleBar">
-            <Image Source="/Assets/Square150x150Logo.png" HorizontalAlignment="Left" Width="16" Height="16"
+            <Image Source="./Assets/AppIcon.png" HorizontalAlignment="Left" Width="16" Height="16"
                    Margin="8,0" />
             <TextBlock Text="Network Battleships" HorizontalAlignment="Left" VerticalAlignment="Center"
                        TextWrapping="NoWrap" Margin="32, 0, 0, 0" />
