@@ -13,7 +13,7 @@
 
     <Grid Name="GameGrid" ColumnDefinitions="200, *, 250, *">
         <Border Grid.Column="0" Margin="5" CornerRadius="5" Padding="5" Background="{ThemeResource ButtonRevealBackgroundDisabled}">
-            <controls:StaggeredPanel Name="ShipsPanel">
+            <controls:StaggeredPanel Name="ShipsPanel" DesiredColumnWidth="50">
             
             </controls:StaggeredPanel>
         </Border>

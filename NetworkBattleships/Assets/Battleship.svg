@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="100mm"
+   height="400mm"
+   viewBox="0 0 100 400"
+   version="1.1"
+   id="svg1"
+   inkscape:export-filename="Cruiser.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   sodipodi:docname="Cruiser.svg"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.3"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.4"
+     inkscape:cx="172.14286"
+     inkscape:cy="341.07143"
+     inkscape:document-units="mm"
+     inkscape:showpageshadow="2"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <path
+     id="rect14"
+     style="fill:#2c82a0;fill-opacity:0.525547;stroke:#0052ad;stroke-width:2.09215;stroke-dasharray:none;stroke-opacity:0.79562"
+     d="M 15.045396,34.281064 50.961552,4.4476603 86.177537,34.281064 c 3.16925,2.684847 7.582067,7.036288 7.582067,7.036288 L 93.178695,384.94443 c -0.0066,3.8981 -3.381602,7.0363 -7.582067,7.0363 H 14.464487 c -4.200465,0 -7.5886572,-3.1382 -7.5820674,-7.0363 L 7.4633289,41.317352 c 0,0 4.4311531,-4.331048 7.5820671,-7.036288 z"
+     sodipodi:nodetypes="scscsssscs" />
+  <rect
+     style="fill:#2c82a0;fill-opacity:0.525547;stroke:#0052ad;stroke-width:2.09215;stroke-dasharray:none;stroke-opacity:0.79562"
+     id="rect15"
+     width="56.474388"
+     height="61.078388"
+     x="23.207651"
+     y="108.44271"
+     rx="4.9564185"
+     ry="3.7972293" />
+  <rect
+     style="fill:#2c7ba0;fill-opacity:0.525547;stroke:#005bad;stroke-width:2.065;stroke-opacity:0.79562"
+     id="rect1"
+     width="56.129463"
+     height="37.041668"
+     x="23.245537"
+     y="177.27083"
+     rx="4.956418"
+     ry="3.7972293" />
+  <rect
+     style="fill:#2c7da0;fill-opacity:0.525547;stroke:#0051ad;stroke-width:2.065;stroke-opacity:0.79562"
+     id="rect2"
+     width="13.985119"
+     height="49.136902"
+     x="24.946428"
+     y="41.955357"
+     rx="4.956418"
+     ry="3.7972293" />
+  <rect
+     style="fill:#2c7da0;fill-opacity:0.525547;stroke:#0051ad;stroke-width:2.065;stroke-opacity:0.79562"
+     id="rect3"
+     width="15.497024"
+     height="49.514877"
+     x="64.255951"
+     y="41.955357"
+     rx="4.9564176"
+     ry="3.7972293" />
+  <rect
+     style="fill:#2c7da0;fill-opacity:0.525547;stroke:#0051ad;stroke-width:2.065;stroke-opacity:0.79562"
+     id="rect4"
+     width="5.2916665"
+     height="139.09525"
+     x="69.547623"
+     y="235.47916"
+     rx="4.9564171"
+     ry="3.7972293" />
+</svg>

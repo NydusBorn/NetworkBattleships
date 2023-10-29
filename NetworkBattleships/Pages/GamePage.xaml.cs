@@ -1,5 +1,8 @@
+using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -113,6 +116,12 @@ namespace NetworkBattleships.Pages
                 Grid.SetRow(tb, i);
                 OpponentGrid.Children.Add(tb);
             }
+            
+            ShipsPanel.Children.Add(new Image(){Source = new SvgImageSource(new Uri($"{Environment.CurrentDirectory}/Assets/Destroyer.svg")), Stretch = Stretch.Fill, RasterizationScale = 8, Width = cellSize, Height = cellSize * 2});
+            ShipsPanel.Children.Add(new Image(){Source = new SvgImageSource(new Uri($"{Environment.CurrentDirectory}/Assets/Submarine.svg")), Stretch = Stretch.Fill, RasterizationScale = 8, Width = cellSize, Height = cellSize * 3});
+            ShipsPanel.Children.Add(new Image(){Source = new SvgImageSource(new Uri($"{Environment.CurrentDirectory}/Assets/Cruiser.svg")), Stretch = Stretch.Fill, RasterizationScale = 8, Width = cellSize, Height = cellSize * 3});
+            ShipsPanel.Children.Add(new Image(){Source = new SvgImageSource(new Uri($"{Environment.CurrentDirectory}/Assets/Battleship.svg")), Stretch = Stretch.Fill, RasterizationScale = 8, Width = cellSize, Height = cellSize * 4});
+            ShipsPanel.Children.Add(new Image(){Source = new SvgImageSource(new Uri($"{Environment.CurrentDirectory}/Assets/Carrier.svg")), Stretch = Stretch.Fill, RasterizationScale = 8, Width = cellSize, Height = cellSize * 5});
         }
     }
 }

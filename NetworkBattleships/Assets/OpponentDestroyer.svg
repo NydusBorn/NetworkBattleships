@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="100mm"
+   height="200mm"
+   viewBox="0 0 100 200"
+   version="1.1"
+   id="svg1"
+   inkscape:export-filename="Destroyer.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   sodipodi:docname="OpponentDestroyer.svg"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.3"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.4"
+     inkscape:cx="220"
+     inkscape:cy="338.92857"
+     inkscape:document-units="mm"
+     inkscape:showpageshadow="2"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <path
+     id="rect14"
+     style="fill:#a02c4a;fill-opacity:0.525547;stroke:#ad0024;stroke-width:2.10112;stroke-dasharray:none;stroke-opacity:0.79562"
+     d="M 14.359134,34.284356 50.585849,4.4524794 86.106338,34.284356 c 3.196653,2.68471 7.647627,7.035929 7.647627,7.035929 l 0.176557,144.804195 c 0.0048,3.89791 -3.410842,7.03593 -7.647628,7.03593 H 14.535691 c -4.236786,0 -7.6428756,-3.13802 -7.6476282,-7.03593 L 6.7115061,41.320285 c 0,0 4.4694679,-4.330827 7.6476279,-7.035929 z"
+     sodipodi:nodetypes="scscsssscs" />
+  <rect
+     style="fill:#a02c4a;fill-opacity:0.525547;stroke:#ad0024;stroke-width:2.10112;stroke-dasharray:none;stroke-opacity:0.79562"
+     id="rect15"
+     width="29.131855"
+     height="57.106731"
+     x="37.079258"
+     y="77.071785"
+     rx="4.9992752"
+     ry="3.797035" />
+  <rect
+     style="fill:#a02c4a;fill-opacity:0.525547;stroke:#ad0024;stroke-width:2.10112;stroke-dasharray:none;stroke-opacity:0.79562"
+     id="rect16"
+     width="39.725258"
+     height="7.1596441"
+     x="32.13567"
+     y="143.04286"
+     rx="4.9992747"
+     ry="3.4945881" />
+  <rect
+     style="fill:#a02c4a;fill-opacity:0.525547;stroke:#ad0024;stroke-width:2.10112;stroke-dasharray:none;stroke-opacity:0.79562"
+     id="rect17"
+     width="5.473258"
+     height="23.524565"
+     x="57.206722"
+     y="32.409214"
+     rx="4.9992743"
+     ry="3.4945879" />
+</svg>
