@@ -12,26 +12,37 @@
     Background="{ThemeResource SystemControlDisabledTransparentBrush}">
 
     <Grid Name="GameGrid" ColumnDefinitions="200, *, 250, *">
-        <Border Grid.Column="0" Margin="5" CornerRadius="5" Padding="5" Background="{ThemeResource ButtonRevealBackgroundDisabled}">
-            <controls:StaggeredPanel Name="ShipsPanel" DesiredColumnWidth="50">
-            
-            </controls:StaggeredPanel>
+        <Border Grid.Column="0" Margin="5" CornerRadius="5" Padding="5"
+                Background="{ThemeResource ButtonRevealBackgroundDisabled}">
+            <ItemsView Name="ShipsPanel" SelectionMode="Single" AllowDrop="True">
+                <ItemsView.ItemTemplate>
+                    <DataTemplate x:DataType="Image">
+                        <ItemContainer>
+                            <Image Source="{x:Bind Source}" MaxWidth="50" RasterizationScale="8" CanDrag="True"/>
+                        </ItemContainer>
+                    </DataTemplate>
+                </ItemsView.ItemTemplate>
+            </ItemsView>
         </Border>
-        <Border Grid.Column="1" Margin="5" CornerRadius="5" Padding="5" Background="{ThemeResource ButtonRevealBackgroundDisabled}">
-            <Grid Name="PlayerGrid" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Border Grid.Column="1" Margin="5" CornerRadius="5" Padding="5"
+                Background="{ThemeResource ButtonRevealBackgroundDisabled}">
+            <Grid Name="PlayerGrid" HorizontalAlignment="Center" VerticalAlignment="Center" AllowDrop="True" DragOver="ShipDragOver">
 
             </Grid>
         </Border>
 
-        <Border Grid.Column="2" Margin="5" CornerRadius="5" Padding="5" Background="{ThemeResource ButtonRevealBackgroundDisabled}">
+        <Border Grid.Column="2" Margin="5" CornerRadius="5" Padding="5"
+                Background="{ThemeResource ButtonRevealBackgroundDisabled}">
             <Grid RowDefinitions="auto, *, 60">
+                <TextBlock Margin="15,50,15,20" Name="TextBlockStatus" FontSize="24" HorizontalTextAlignment="Center" Text="Preparation Phase"/>
                 <ListView Grid.Row="1">
 
                 </ListView>
             </Grid>
         </Border>
 
-        <Border Grid.Column="3" Margin="5" CornerRadius="5" Padding="5" Background="{ThemeResource ButtonRevealBackgroundDisabled}">
+        <Border Grid.Column="3" Margin="5" CornerRadius="5" Padding="5"
+                Background="{ThemeResource ButtonRevealBackgroundDisabled}">
             <Grid Name="OpponentGrid" HorizontalAlignment="Center" VerticalAlignment="Center">
 
             </Grid>
