@@ -10,20 +10,25 @@
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource SystemControlDisabledTransparentBrush}"
-    PointerMoved="PointerMove">
+    PointerMoved="PointerMove"
+    KeyDown="KeyPress">
 
     <Grid Name="GameGrid" ColumnDefinitions="200, *, 250, *">
         <Border Grid.Column="0" Margin="5" CornerRadius="5" Padding="5"
                 Background="{ThemeResource ButtonRevealBackgroundDisabled}">
-            <ItemsView Name="ShipsPanel" SelectionMode="Single" AllowDrop="True">
-                <ItemsView.ItemTemplate>
-                    <DataTemplate x:DataType="Image">
-                        <ItemContainer>
-                            <Image Source="{x:Bind Source}" MaxWidth="50" RasterizationScale="8" CanDrag="True" DragStarting="ShipDragStart" DropCompleted="ShipDropComplete"/>
-                        </ItemContainer>
-                    </DataTemplate>
-                </ItemsView.ItemTemplate>
-            </ItemsView>
+            <Grid>
+                <ItemsView Name="ShipsPanel" SelectionMode="None" AllowDrop="True">
+                    <ItemsView.ItemTemplate>
+                        <DataTemplate x:DataType="Image">
+                            <ItemContainer>
+                                <Image Source="{x:Bind Source}" MaxWidth="50" RasterizationScale="8" CanDrag="True" DragStarting="ShipDragStart" DropCompleted="ShipDropComplete"/>
+                            </ItemContainer>
+                        </DataTemplate>
+                    </ItemsView.ItemTemplate>
+                </ItemsView>
+                <Button Name="ChangeRotationButton" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Click="ChangeRotation" Content="Up"/>
+            </Grid>
+            
         </Border>
         <Border Grid.Column="1" Margin="5" CornerRadius="5" Padding="5"
                 Background="{ThemeResource ButtonRevealBackgroundDisabled}">

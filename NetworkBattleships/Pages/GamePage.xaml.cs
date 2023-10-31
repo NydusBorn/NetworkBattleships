@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Streams;
+using Windows.System;
 using Windows.UI.Popups;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -134,7 +135,7 @@ namespace NetworkBattleships.Pages
                 Grid.SetRow(tb, i);
                 OpponentGrid.Children.Add(tb);
             }
-
+            
             var ships = new System.Collections.ObjectModel.ObservableCollection<Image>
             {
                 new Image()
@@ -223,11 +224,12 @@ namespace NetworkBattleships.Pages
                     break;
                 }
             }
+
+            imageIndex = selected;
             var img = images[selected];
             _dragCancellationTokenSource = new CancellationTokenSource();
             int width = (int)img.Width;
             int height = (int)img.Height;
-            _rotation = Rotation.Down;
             Task.Run(() => ShipDragProcess(height, width, _dragCancellationTokenSource.Token));
         }
 
@@ -243,7 +245,7 @@ namespace NetworkBattleships.Pages
             Up, Down, Left, Right
         }
 
-        private Rotation _rotation;
+        private Rotation _rotation = Rotation.Up;
         
         private async void ShipDragProcess(int imgHeight, int imgWidth, CancellationToken ct)
         {
@@ -257,16 +259,16 @@ namespace NetworkBattleships.Pages
                 switch (_rotation)
                 {
                     case Rotation.Up:
-                        row = Math.Clamp(row, 1 + (imgHeight / CellSize), FieldSide - 1);
+                        row = Math.Clamp(row - (imgHeight / CellSize) + 1, 1, FieldSide - (imgHeight / CellSize));
                         break;
                     case Rotation.Down:
-                        row = Math.Clamp(row, 1, FieldSide - 1 - (imgHeight / CellSize));
+                        row = Math.Clamp(row, 1, FieldSide - (imgHeight / CellSize));
                         break;
                     case Rotation.Left:
-                        col = Math.Clamp(col, 1 + (imgWidth / CellSize), FieldSide - 1);
+                        col = Math.Clamp(col - (imgHeight / CellSize) + 1, 1, FieldSide - (imgHeight / CellSize));
                         break;
                     case Rotation.Right:
-                        col = Math.Clamp(col, 1, FieldSide - 1 - (imgWidth / CellSize));
+                        col = Math.Clamp(col, 1, FieldSide - (imgHeight / CellSize));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -276,7 +278,14 @@ namespace NetworkBattleships.Pages
                 {
                     for (int i = row; i < row + (imgHeight / CellSize); i++)
                     {
-                        
+                        newPositions.Add(new Point() { X = i, Y = col });
+                    }
+                }
+                else
+                {
+                    for (int i = col; i < col + (imgHeight / CellSize); i++)
+                    {
+                        newPositions.Add(new Point() { X = row, Y = i });
                     }
                 }
 
@@ -312,15 +321,106 @@ namespace NetworkBattleships.Pages
             }
         }
 
+        private int imageIndex;
+        
         private void ShipDrop(object o, DragEventArgs dragEventArgs)
         {
             _dragCancellationTokenSource.Cancel();
-            
+            var currentCursorPosition = _currentCursorPosition;
+            var image = (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>)[imageIndex];
+            int row = Math.Clamp((int)currentCursorPosition.Y / CellSize, 1, FieldSide - 1);
+            int col = Math.Clamp((int)currentCursorPosition.X / CellSize, 1, FieldSide - 1);
+            switch (_rotation)
+            {
+                case Rotation.Up:
+                    row = Math.Clamp(row - ((int)image.Height / CellSize) + 1, 1, FieldSide - ((int)image.Height / CellSize));
+                    break;
+                case Rotation.Down:
+                    row = Math.Clamp(row, 1, FieldSide - ((int)image.Height / CellSize));
+                    break;
+                case Rotation.Left:
+                    col = Math.Clamp(col - ((int)image.Height / CellSize) + 1, 1, FieldSide - ((int)image.Height / CellSize));
+                    break;
+                case Rotation.Right:
+                    col = Math.Clamp(col, 1, FieldSide - ((int)image.Height / CellSize));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>).RemoveAt(imageIndex);
+            PlayerGrid.Children.Add(image);
+            switch (_rotation)
+            {
+                case Rotation.Up:
+                    Grid.SetRow(image, 0);
+                    Grid.SetColumn(image, 0);
+                    Grid.SetRowSpan(image, (int)image.Height / CellSize);
+                    image.RenderTransform = new CompositeTransform() {CenterX = image.Width / 2, CenterY = image.Height / 2, TranslateX = CellSize * col, TranslateY = CellSize * row};
+                    break;
+                case Rotation.Down:
+                    Grid.SetRow(image, 0);
+                    Grid.SetColumn(image, 0);
+                    Grid.SetRowSpan(image, (int)image.Height / CellSize);
+                    image.RenderTransform = new CompositeTransform(){ Rotation = 180, CenterX = image.Width / 2, CenterY = image.Height / 2, TranslateX = CellSize * col, TranslateY = CellSize * row};
+                    break;
+                case Rotation.Left:
+                    Grid.SetRow(image, 0);
+                    Grid.SetColumn(image, 0);
+                    Grid.SetRowSpan(image, (int)image.Height / CellSize);
+                    image.RenderTransform = new CompositeTransform(){Rotation = 270, TranslateX = CellSize * col, TranslateY = CellSize * (1 + row)};
+                    break;
+                case Rotation.Right:
+                    Grid.SetRow(image, 0);
+                    Grid.SetColumn(image, 0);
+                    Grid.SetRowSpan(image, (int)image.Height / CellSize);
+                    image.RenderTransform = new CompositeTransform(){Rotation = 90, TranslateX = CellSize * (col + ((int)image.Height / CellSize)), TranslateY = CellSize * (row)};
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private void ShipDropComplete(UIElement sender, DropCompletedEventArgs args)
         {
             _dragCancellationTokenSource.Cancel();
+        }
+
+        private void ChangeRotation(object sender, RoutedEventArgs e)
+        {
+            ChangeRotationState();
+        }
+
+        private void ChangeRotationState()
+        {
+            switch (_rotation)
+            {
+                case Rotation.Up:
+                    _rotation = Rotation.Right;
+                    ChangeRotationButton.Content = "Right";
+                    break;
+                case Rotation.Right:
+                    _rotation = Rotation.Down;
+                    ChangeRotationButton.Content = "Down";
+                    break;
+                case Rotation.Down:
+                    _rotation = Rotation.Left;
+                    ChangeRotationButton.Content = "Left";
+                    break;
+                case Rotation.Left:
+                    _rotation = Rotation.Up;
+                    ChangeRotationButton.Content = "Up";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        private void KeyPress(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == VirtualKey.R)
+            {
+                ChangeRotationState();
+            }
         }
     }
 }
