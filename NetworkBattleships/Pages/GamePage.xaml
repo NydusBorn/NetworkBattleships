@@ -9,7 +9,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d"
-    Background="{ThemeResource SystemControlDisabledTransparentBrush}">
+    Background="{ThemeResource SystemControlDisabledTransparentBrush}"
+    PointerMoved="PointerMove">
 
     <Grid Name="GameGrid" ColumnDefinitions="200, *, 250, *">
         <Border Grid.Column="0" Margin="5" CornerRadius="5" Padding="5"
@@ -18,7 +19,7 @@
                 <ItemsView.ItemTemplate>
                     <DataTemplate x:DataType="Image">
                         <ItemContainer>
-                            <Image Source="{x:Bind Source}" MaxWidth="50" RasterizationScale="8" CanDrag="True"/>
+                            <Image Source="{x:Bind Source}" MaxWidth="50" RasterizationScale="8" CanDrag="True" DragStarting="ShipDragStart" DropCompleted="ShipDropComplete"/>
                         </ItemContainer>
                     </DataTemplate>
                 </ItemsView.ItemTemplate>
@@ -26,7 +27,7 @@
         </Border>
         <Border Grid.Column="1" Margin="5" CornerRadius="5" Padding="5"
                 Background="{ThemeResource ButtonRevealBackgroundDisabled}">
-            <Grid Name="PlayerGrid" HorizontalAlignment="Center" VerticalAlignment="Center" AllowDrop="True" DragOver="ShipDragOver">
+            <Grid Name="PlayerGrid" HorizontalAlignment="Center" VerticalAlignment="Center" AllowDrop="True" DragOver="ShipDragOver" Drop="ShipDrop">
 
             </Grid>
         </Border>
