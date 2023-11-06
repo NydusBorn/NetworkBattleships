@@ -9,6 +9,7 @@ using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Streams;
 using Windows.System;
 using Windows.UI.Popups;
+using BattleshipsModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -83,6 +84,7 @@ namespace NetworkBattleships.Pages
                     };
                     Grid.SetRow(bt, i);
                     Grid.SetColumn(bt, j);
+                    bt.Click += EnemyTileClick;
                     OpponentGrid.Children.Add(bt);
                 }
             }
@@ -240,12 +242,7 @@ namespace NetworkBattleships.Pages
             TextBlockStatus.Text = $"{_currentCursorPosition.X}\n{_currentCursorPosition.Y}";
         }
 
-        enum Rotation
-        {
-            Up, Down, Left, Right
-        }
-
-        private Rotation _rotation = Rotation.Up;
+        private GameModel.Orientation _rotation = GameModel.Orientation.Up;
         
         private async void ShipDragProcess(int imgHeight, int imgWidth, CancellationToken ct)
         {
@@ -258,23 +255,23 @@ namespace NetworkBattleships.Pages
                 int col = Math.Clamp((int)currentCursorPosition.X / CellSize, 1, FieldSide - 1);
                 switch (_rotation)
                 {
-                    case Rotation.Up:
+                    case GameModel.Orientation.Up:
                         row = Math.Clamp(row - (imgHeight / CellSize) + 1, 1, FieldSide - (imgHeight / CellSize));
                         break;
-                    case Rotation.Down:
+                    case GameModel.Orientation.Down:
                         row = Math.Clamp(row, 1, FieldSide - (imgHeight / CellSize));
                         break;
-                    case Rotation.Left:
+                    case GameModel.Orientation.Left:
                         col = Math.Clamp(col - (imgHeight / CellSize) + 1, 1, FieldSide - (imgHeight / CellSize));
                         break;
-                    case Rotation.Right:
+                    case GameModel.Orientation.Right:
                         col = Math.Clamp(col, 1, FieldSide - (imgHeight / CellSize));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
 
-                if (_rotation is Rotation.Down or Rotation.Up)
+                if (_rotation is GameModel.Orientation.Down or GameModel.Orientation.Up)
                 {
                     for (int i = row; i < row + (imgHeight / CellSize); i++)
                     {
@@ -332,16 +329,16 @@ namespace NetworkBattleships.Pages
             int col = Math.Clamp((int)currentCursorPosition.X / CellSize, 1, FieldSide - 1);
             switch (_rotation)
             {
-                case Rotation.Up:
+                case GameModel.Orientation.Up:
                     row = Math.Clamp(row - ((int)image.Height / CellSize) + 1, 1, FieldSide - ((int)image.Height / CellSize));
                     break;
-                case Rotation.Down:
+                case GameModel.Orientation.Down:
                     row = Math.Clamp(row, 1, FieldSide - ((int)image.Height / CellSize));
                     break;
-                case Rotation.Left:
+                case GameModel.Orientation.Left:
                     col = Math.Clamp(col - ((int)image.Height / CellSize) + 1, 1, FieldSide - ((int)image.Height / CellSize));
                     break;
-                case Rotation.Right:
+                case GameModel.Orientation.Right:
                     col = Math.Clamp(col, 1, FieldSide - ((int)image.Height / CellSize));
                     break;
                 default:
@@ -350,35 +347,29 @@ namespace NetworkBattleships.Pages
 
             (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>).RemoveAt(imageIndex);
             PlayerGrid.Children.Add(image);
+            Grid.SetRow(image, 0);
+            Grid.SetColumn(image, 0);
+            Grid.SetRowSpan(image, (int)image.Height / CellSize);
             switch (_rotation)
             {
-                case Rotation.Up:
-                    Grid.SetRow(image, 0);
-                    Grid.SetColumn(image, 0);
-                    Grid.SetRowSpan(image, (int)image.Height / CellSize);
+                case GameModel.Orientation.Up:
                     image.RenderTransform = new CompositeTransform() {CenterX = image.Width / 2, CenterY = image.Height / 2, TranslateX = CellSize * col, TranslateY = CellSize * row};
                     break;
-                case Rotation.Down:
-                    Grid.SetRow(image, 0);
-                    Grid.SetColumn(image, 0);
-                    Grid.SetRowSpan(image, (int)image.Height / CellSize);
+                case GameModel.Orientation.Down:
                     image.RenderTransform = new CompositeTransform(){ Rotation = 180, CenterX = image.Width / 2, CenterY = image.Height / 2, TranslateX = CellSize * col, TranslateY = CellSize * row};
                     break;
-                case Rotation.Left:
-                    Grid.SetRow(image, 0);
-                    Grid.SetColumn(image, 0);
-                    Grid.SetRowSpan(image, (int)image.Height / CellSize);
+                case GameModel.Orientation.Left:
                     image.RenderTransform = new CompositeTransform(){Rotation = 270, TranslateX = CellSize * col, TranslateY = CellSize * (1 + row)};
                     break;
-                case Rotation.Right:
-                    Grid.SetRow(image, 0);
-                    Grid.SetColumn(image, 0);
-                    Grid.SetRowSpan(image, (int)image.Height / CellSize);
+                case GameModel.Orientation.Right:
                     image.RenderTransform = new CompositeTransform(){Rotation = 90, TranslateX = CellSize * (col + ((int)image.Height / CellSize)), TranslateY = CellSize * (row)};
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            int shipSize = (int)image.Height / CellSize;
+            
+            Connector._GameModel.AddShip(new Point() { X = col, Y = row }, _rotation, (GameModel.Types)imageIndex);
         }
 
         private void ShipDropComplete(UIElement sender, DropCompletedEventArgs args)
@@ -395,20 +386,20 @@ namespace NetworkBattleships.Pages
         {
             switch (_rotation)
             {
-                case Rotation.Up:
-                    _rotation = Rotation.Right;
+                case GameModel.Orientation.Up:
+                    _rotation = GameModel.Orientation.Right;
                     ChangeRotationButton.Content = "Right";
                     break;
-                case Rotation.Right:
-                    _rotation = Rotation.Down;
+                case GameModel.Orientation.Right:
+                    _rotation = GameModel.Orientation.Down;
                     ChangeRotationButton.Content = "Down";
                     break;
-                case Rotation.Down:
-                    _rotation = Rotation.Left;
+                case GameModel.Orientation.Down:
+                    _rotation = GameModel.Orientation.Left;
                     ChangeRotationButton.Content = "Left";
                     break;
-                case Rotation.Left:
-                    _rotation = Rotation.Up;
+                case GameModel.Orientation.Left:
+                    _rotation = GameModel.Orientation.Up;
                     ChangeRotationButton.Content = "Up";
                     break;
                 default:
@@ -420,6 +411,32 @@ namespace NetworkBattleships.Pages
             if (e.Key == VirtualKey.R)
             {
                 ChangeRotationState();
+            }
+        }
+
+        private void EnemyTileClick(object sender, RoutedEventArgs routedEventArgs)
+        {
+            Button tile = sender as Button;
+            Connector._GameModel.AttemptAttack(Grid.GetColumn(tile), Grid.GetRow(tile));
+            bool response = false;
+            while (!response)
+            {
+                Task.Delay(300);
+                switch (Connector._GameModel.OpponentGrid[Grid.GetColumn(tile)][Grid.GetRow(tile)])
+                {
+                    case GameModel.CellStatus.EmptyMiss:
+                        tile.Background = new SolidColorBrush(CurrentMissButtonColor.Value);
+                        response = true;
+                        break;
+                    case GameModel.CellStatus.Sunk:
+                        tile.Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
+                        response = true;
+                        break;
+                    case GameModel.CellStatus.Unknown:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
         }
     }

@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
+using BattleshipsModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -48,13 +49,6 @@ namespace NetworkBattleships.Pages
             IpTextBlock.Text = sb.ToString();
         }
     
-        private static async void Transfer(Socket connection, string message)
-        {
-            connection.SendAsync(Encoding.Default.GetBytes(message), SocketFlags.None);
-            byte[] buffer = new byte[1024];
-            int receivedBytes = connection.Receive(buffer);
-        }
-    
         public Socket CurrentSocket;
         public Socket ClientSocket;
 
@@ -65,15 +59,17 @@ namespace NetworkBattleships.Pages
             CurrentSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(ServerPort.Text)));
             CurrentSocket.Listen(10);
             ClientSocket = CurrentSocket.Accept();
-            Transfer(ClientSocket, "Welcome from Server!");
+            Connector._GameModel = new GameModel(GameModel.Roles.Server, ClientSocket);
+            NextPage(sender, e);
         }
 
-        public void OpenClient(object sender, RoutedEventArgs routedEventArgs)
+        private void OpenClient(object sender, RoutedEventArgs routedEventArgs)
         {
             Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
             CurrentSocket = client;
             CurrentSocket.Connect(IPAddress.Parse(ClientIp.Text), int.Parse(ClientPort.Text));
-            Transfer(CurrentSocket, "Hello from Client!");
+            Connector._GameModel = new GameModel(GameModel.Roles.Client, CurrentSocket);
+            NextPage(sender, routedEventArgs);
         }
 
         public SetupPage()
