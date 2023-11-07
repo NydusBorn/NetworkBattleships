@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.ComponentModel;
+using System.Drawing;
 using System.Net.Sockets;
 using System.Text;
 
@@ -30,6 +31,11 @@ public class GameModel
     {
         Destroyer, Submarine, Cruiser, Battleship, Carrier
     }
+
+    public enum GameState
+    {
+        Preparation, Playing, Win, Loss
+    }
     
     public Roles Role;
     public Socket Connection;
@@ -38,6 +44,7 @@ public class GameModel
     public List<(Point, Orientation, Types)> PlayerShips = new List<(Point, Orientation, Types)>();
     public List<(Point, Orientation, Types)> OpponentShips = new List<(Point, Orientation, Types)>();
     private Task _awaiter;
+    public GameState State = GameState.Preparation;
 
     public GameModel(Roles role, Socket connection)
     {
@@ -55,7 +62,7 @@ public class GameModel
             }
         }
 
-        _awaiter = Task.Run(MessageAwaiter);
+        Task.Run(MessageAwaiter);
     }
 
     public void AddShip(Point coordinate, Orientation orientation, Types type)
@@ -99,10 +106,11 @@ public class GameModel
         }
     }
 
-    public void RemoveShip(int xCoord, int yCoord)
+    public Types RemoveShip(int xCoord, int yCoord)
     {
         //TODO: Remake
         PlayerGrid[xCoord][yCoord] = CellStatus.Empty;
+        return Types.Destroyer;
     }
     
     public void AttemptAttack(int xCoord, int yCoord)
@@ -117,13 +125,31 @@ public class GameModel
     }
 
     public string? LastAction = null;
+    public event Action<int, int>? OnAttack;
+    public event Action<int, int>? OnReceive;
+    public event Action? OnOpponentReady;
+
+    public void StartGame()
+    {
+        State = GameState.Playing;
+        Connection.SendAsync(Encoding.Default.GetBytes("ready"), SocketFlags.None);
+    }
+    
     private void MessageAwaiter()
     {
         while (true)
         {
             byte[] buffer = new byte[1024];
             int receivedBytes = Connection.Receive(buffer, SocketFlags.None);
+            if (receivedBytes <= 0)
+            {
+                return;
+            }
             string message = Encoding.Default.GetString(buffer, 0 , receivedBytes);
+            if (message.Length >= 5 && message.Substring(0, 5) == "ready")
+            {
+                OnOpponentReady?.Invoke();
+            }
             if (message.Length >= 4 && message.Substring(0, 4) == "sink")
             {
                 string coordinate = message.Split(" ")[1];
@@ -131,6 +157,12 @@ public class GameModel
                 int yCoord = coordinate[1] - '0';
                 switch (PlayerGrid[xCoord][yCoord])
                 {
+                    case CellStatus.Sunk:
+                        break;
+                    case CellStatus.EmptyMiss:
+                        break;
+                    case CellStatus.Unknown:
+                        break;
                     case CellStatus.Alive:
                         PlayerGrid[xCoord][yCoord] = CellStatus.Sunk;
                         Connection.SendAsync(Encoding.Default.GetBytes("hit"), SocketFlags.None);
@@ -142,6 +174,7 @@ public class GameModel
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+                OnReceive?.Invoke(xCoord, yCoord);
             }
             else if (message.Length >= 3 && message.Substring(0, 3) == "hit")
             {
@@ -149,6 +182,7 @@ public class GameModel
                 int xCoord = coordinate[0] - '0';
                 int yCoord = coordinate[1] - '0';
                 OpponentGrid[xCoord][yCoord] = CellStatus.Sunk;
+                OnAttack?.Invoke(xCoord, yCoord);
             }
             else if (message.Length >= 4 &&message.Substring(0, 4) == "miss")
             {
@@ -156,6 +190,7 @@ public class GameModel
                 int xCoord = coordinate[0] - '0';
                 int yCoord = coordinate[1] - '0';
                 OpponentGrid[xCoord][yCoord] = CellStatus.EmptyMiss;
+                OnAttack?.Invoke(xCoord, yCoord);
             }
             else if (message.Length >= 6 && message.Substring(0, 6) == "reveal")
             {

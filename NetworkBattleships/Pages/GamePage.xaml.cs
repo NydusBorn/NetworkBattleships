@@ -167,7 +167,9 @@ namespace NetworkBattleships.Pages
                 }
             };
             ShipsPanel.ItemsSource = ships;
-            Task.Run(() => { DispatcherQueue.TryEnqueue(SetColors); });
+            DispatcherQueue.TryEnqueue(SetColors);
+            Connector._GameModel.OnReceive += ReceivedAttack;
+            Connector._GameModel.OnAttack += MadeAttack;
         }
 
         private async void SetColors()
@@ -413,30 +415,77 @@ namespace NetworkBattleships.Pages
                 ChangeRotationState();
             }
         }
+        
+        private void PlayerTileClick(object sender, RoutedEventArgs routedEventArgs)
+        {
+            if (Connector._GameModel.State == GameModel.GameState.Preparation)
+            {
+                Button tile = sender as Button;
+                var shipType = Connector._GameModel.RemoveShip(Grid.GetColumn(tile), Grid.GetRow(tile));
+            }
+        }
 
         private void EnemyTileClick(object sender, RoutedEventArgs routedEventArgs)
         {
+            if (Connector._GameModel.State != GameModel.GameState.Playing) return;
             Button tile = sender as Button;
             Connector._GameModel.AttemptAttack(Grid.GetColumn(tile), Grid.GetRow(tile));
-            bool response = false;
-            while (!response)
+        }
+
+        private void ReceivedAttack(int xCoord, int yCoord)
+        {
+            DispatcherQueue.TryEnqueue(() =>
             {
-                Task.Delay(300);
-                switch (Connector._GameModel.OpponentGrid[Grid.GetColumn(tile)][Grid.GetRow(tile)])
+                switch (Connector._GameModel.PlayerGrid[xCoord][yCoord])
                 {
+                    case GameModel.CellStatus.Empty:
+                        break;
                     case GameModel.CellStatus.EmptyMiss:
-                        tile.Background = new SolidColorBrush(CurrentMissButtonColor.Value);
-                        response = true;
+                        (PlayerGrid.Children[((yCoord - 1) * (FieldSide - 1)) + xCoord - 1] as Button).Background = new SolidColorBrush(CurrentMissButtonColor.Value);
+                        break;
+                    case GameModel.CellStatus.Alive:
                         break;
                     case GameModel.CellStatus.Sunk:
-                        tile.Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
-                        response = true;
+                        (PlayerGrid.Children[((yCoord - 1) * (FieldSide - 1)) + xCoord - 1] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
                         break;
                     case GameModel.CellStatus.Unknown:
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+            });
+        }
+
+        private void MadeAttack(int xCoord, int yCoord)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                switch (Connector._GameModel.OpponentGrid[xCoord][yCoord])
+                {
+                    case GameModel.CellStatus.Empty:
+                        break;
+                    case GameModel.CellStatus.EmptyMiss:
+                        (OpponentGrid.Children[((yCoord - 1) * (FieldSide - 1)) + xCoord - 1] as Button).Background = new SolidColorBrush(CurrentMissButtonColor.Value);
+                        break;
+                    case GameModel.CellStatus.Alive:
+                        break;
+                    case GameModel.CellStatus.Sunk:
+                        (OpponentGrid.Children[((yCoord - 1) * (FieldSide - 1)) + xCoord - 1] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
+                        break;
+                    case GameModel.CellStatus.Unknown:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            });
+            
+        }
+
+        private void StartGame(object sender, RoutedEventArgs e)
+        {
+            if (Connector._GameModel.State == GameModel.GameState.Preparation)
+            {
+                Connector._GameModel.StartGame();
             }
         }
     }
