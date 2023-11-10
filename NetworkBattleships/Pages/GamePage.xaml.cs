@@ -34,6 +34,7 @@ namespace NetworkBattleships.Pages
         private Color? CurrentHoverButtonColor = null;
         private Color? CurrentSunkButtonColor = null;
         private Color? CurrentMissButtonColor = null;
+        private List<GameModel.Types> _ships = new List<GameModel.Types>();
 
         public GamePage()
         {
@@ -166,12 +167,17 @@ namespace NetworkBattleships.Pages
                     Stretch = Stretch.Fill, RasterizationScale = 8, Width = CellSize, Height = CellSize * 5
                 }
             };
+            _ships.Add(GameModel.Types.Destroyer);
+            _ships.Add(GameModel.Types.Submarine);
+            _ships.Add(GameModel.Types.Cruiser);
+            _ships.Add(GameModel.Types.Battleship);
+            _ships.Add(GameModel.Types.Carrier);
             ShipsPanel.ItemsSource = ships;
             DispatcherQueue.TryEnqueue(SetColors);
             Connector._GameModel.OnReceive += ReceivedAttack;
             Connector._GameModel.OnAttack += MadeAttack;
         }
-
+        
         private async void SetColors()
         {
             var bt = PlayerGrid.Children[0] as Button;
@@ -348,7 +354,9 @@ namespace NetworkBattleships.Pages
             }
 
             (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>).RemoveAt(imageIndex);
+            
             PlayerGrid.Children.Add(image);
+            image.PointerPressed += PlayerShipClick;
             Grid.SetRow(image, 0);
             Grid.SetColumn(image, 0);
             Grid.SetRowSpan(image, (int)image.Height / CellSize);
@@ -371,7 +379,8 @@ namespace NetworkBattleships.Pages
             }
             int shipSize = (int)image.Height / CellSize;
             
-            Connector._GameModel.AddShip(new Point() { X = col, Y = row }, _rotation, (GameModel.Types)imageIndex);
+            Connector._GameModel.AddShip(new Point() { X = col, Y = row }, _rotation, _ships[imageIndex]);
+            _ships.RemoveAt(imageIndex);
         }
 
         private void ShipDropComplete(UIElement sender, DropCompletedEventArgs args)
@@ -416,12 +425,18 @@ namespace NetworkBattleships.Pages
             }
         }
         
-        private void PlayerTileClick(object sender, RoutedEventArgs routedEventArgs)
+        private void PlayerShipClick(object sender, PointerRoutedEventArgs eventArgs)
         {
             if (Connector._GameModel.State == GameModel.GameState.Preparation)
             {
-                Button tile = sender as Button;
-                var shipType = Connector._GameModel.RemoveShip(Grid.GetColumn(tile), Grid.GetRow(tile));
+                Image image = sender as Image;
+                var point = eventArgs.GetCurrentPoint(PlayerGrid).Position;
+                var shipType = Connector._GameModel.RemoveShip(((int)point.X / 50) - 1, ((int)point.Y / 50) - 1);
+                _ships.Add(shipType);
+                PlayerGrid.Children.Remove(image);
+                image.RenderTransform = null;
+                image.PointerPressed -= PlayerShipClick;
+                (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>).Add(image);
             }
         }
 

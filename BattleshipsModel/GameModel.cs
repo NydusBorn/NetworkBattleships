@@ -68,16 +68,13 @@ public class GameModel
     public void AddShip(Point coordinate, Orientation orientation, Types type)
     {
         PlayerShips.Add((coordinate, orientation, type));
-        int shipSize = 0;
+        int shipSize;
         switch (type)
         {
             case Types.Destroyer:
                 shipSize = 2;
                 break;
-            case Types.Submarine:
-                shipSize = 3;
-                break;
-            case Types.Cruiser:
+            case Types.Submarine or Types.Cruiser:
                 shipSize = 3;
                 break;
             case Types.Battleship:
@@ -90,27 +87,112 @@ public class GameModel
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
 
-        if (orientation is Orientation.Up or Orientation.Down)
+        switch (orientation)
         {
-            for (int i = coordinate.Y; i < coordinate.Y + shipSize; i++)
+            case Orientation.Up or Orientation.Down:
             {
-                PlayerGrid[coordinate.X][i] = CellStatus.Alive;
+                for (int i = coordinate.Y; i < coordinate.Y + shipSize; i++)
+                {
+                    PlayerGrid[coordinate.X][i] = CellStatus.Alive;
+                }
+                break;
             }
-        }
-        else
-        {
-            for (int i = coordinate.X; i < coordinate.X + shipSize; i++)
+            case Orientation.Left or Orientation.Right:
             {
-                PlayerGrid[i][coordinate.Y] = CellStatus.Alive;
+                for (int i = coordinate.X; i < coordinate.X + shipSize; i++)
+                {
+                    PlayerGrid[i][coordinate.Y] = CellStatus.Alive;
+                }
+                break;
             }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null);
         }
     }
 
     public Types RemoveShip(int xCoord, int yCoord)
     {
-        //TODO: Remake
-        PlayerGrid[xCoord][yCoord] = CellStatus.Empty;
-        return Types.Destroyer;
+        Types? type = null;
+        foreach (var ship in PlayerShips)
+        {
+            int shipSize;
+            switch (ship.Item3)
+            {
+                case Types.Destroyer:
+                    shipSize = 2;
+                    break;
+                case Types.Submarine or Types.Cruiser:
+                    shipSize = 3;
+                    break;
+                case Types.Battleship:
+                    shipSize = 4;
+                    
+                    break;
+                case Types.Carrier:
+                    shipSize = 5;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(ship.Item3), ship.Item3, null);
+            }
+
+            bool found = false;
+            switch (ship.Item2)
+            {
+                case Orientation.Up or Orientation.Down:
+                {
+                    for (int i = ship.Item1.Y; i < ship.Item1.Y + shipSize; i++)
+                    {
+                        if (xCoord == ship.Item1.X && yCoord == i)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case Orientation.Left or Orientation.Right:
+                {
+                    for (int i = ship.Item1.X; i < ship.Item1.X + shipSize; i++)
+                    {
+                        if (xCoord == i && yCoord == ship.Item1.Y)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    break;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(ship.Item2), ship.Item2, null);
+            }
+            if (found)
+            {
+                type = ship.Item3;
+                switch (ship.Item2)
+                {
+                    case Orientation.Up or Orientation.Down:
+                    {
+                        for (int i = ship.Item1.Y; i < ship.Item1.Y + shipSize; i++)
+                        {
+                            PlayerGrid[ship.Item1.X][i] = CellStatus.Empty;
+                        }
+                        break;
+                    }
+                    case Orientation.Left or Orientation.Right:
+                    {
+                        for (int i = ship.Item1.X; i < ship.Item1.X + shipSize; i++)
+                        {
+                            PlayerGrid[i][ship.Item1.Y] = CellStatus.Empty;
+                        }
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(ship.Item2), ship.Item2, null);
+                }
+            }
+            
+        }
+        return type.Value;
     }
     
     public void AttemptAttack(int xCoord, int yCoord)
