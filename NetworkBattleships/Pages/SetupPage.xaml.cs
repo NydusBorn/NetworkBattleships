@@ -60,7 +60,7 @@ namespace NetworkBattleships.Pages
             CurrentSocket.Listen(10);
             ClientSocket = CurrentSocket.Accept();
             Connector._GameModel = new GameModel(GameModel.Roles.Server, ClientSocket);
-            NextPage(sender, e);
+            NextPage();
         }
 
         private void OpenClient(object sender, RoutedEventArgs routedEventArgs)
@@ -69,7 +69,7 @@ namespace NetworkBattleships.Pages
             CurrentSocket = client;
             CurrentSocket.Connect(IPAddress.Parse(ClientIp.Text), int.Parse(ClientPort.Text));
             Connector._GameModel = new GameModel(GameModel.Roles.Client, CurrentSocket);
-            NextPage(sender, routedEventArgs);
+            NextPage();
         }
 
         public SetupPage()
@@ -79,7 +79,7 @@ namespace NetworkBattleships.Pages
             GetIPs();
         }
 
-        private void NextPage(object sender, RoutedEventArgs e)
+        private void NextPage()
         {
             Connector._MainWindow.ContentFrame.Navigate(typeof(GamePage));
         }

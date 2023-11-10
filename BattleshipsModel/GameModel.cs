@@ -197,26 +197,32 @@ public class GameModel
     
     public void AttemptAttack(int xCoord, int yCoord)
     {
+        if (CurrentMove % 2 != 0 || !EnemyReady) return;
         LastAction = $"sink {xCoord}{yCoord}";
         Connection.SendAsync(Encoding.Default.GetBytes(LastAction), SocketFlags.None);
+        CurrentMove += 1;
     }
 
     public void Reveal()
     {
-        //TODO: Make
+        //TODO: Make to reveal a singular ship
     }
 
-    public string? LastAction = null;
+    private string? LastAction = null;
     public event Action<int, int>? OnAttack;
     public event Action<int, int>? OnReceive;
-    public event Action? OnOpponentReady;
+    public event Action<bool>? OnOpponentReady;
 
     public void StartGame()
     {
         State = GameState.Playing;
-        Connection.SendAsync(Encoding.Default.GetBytes("ready"), SocketFlags.None);
+        CurrentMove ??= (Random.Shared.NextDouble() < 0.5 ? 0 : 1);
+        Connection.SendAsync(Encoding.Default.GetBytes($"ready {CurrentMove}"), SocketFlags.None);
     }
-    
+
+    public int? CurrentMove { get; private set; }
+    public bool EnemyReady { get; private set; } = false;
+
     private void MessageAwaiter()
     {
         while (true)
@@ -230,20 +236,23 @@ public class GameModel
             string message = Encoding.Default.GetString(buffer, 0 , receivedBytes);
             if (message.Length >= 5 && message.Substring(0, 5) == "ready")
             {
-                OnOpponentReady?.Invoke();
+                CurrentMove ??= int.Parse(message.Split(" ")[1]) == 1 ? 0 : 1; 
+                EnemyReady = true;
+                OnOpponentReady?.Invoke(CurrentMove == 0);
             }
-            if (message.Length >= 4 && message.Substring(0, 4) == "sink")
+            else if (message.Length >= 7 && message.Substring(0, 7) == "retract")
+            {
+                CurrentMove -= 1;
+            }
+            else if (message.Length >= 4 && message.Substring(0, 4) == "sink")
             {
                 string coordinate = message.Split(" ")[1];
                 int xCoord = coordinate[0] - '0';
                 int yCoord = coordinate[1] - '0';
                 switch (PlayerGrid[xCoord][yCoord])
                 {
-                    case CellStatus.Sunk:
-                        break;
-                    case CellStatus.EmptyMiss:
-                        break;
-                    case CellStatus.Unknown:
+                    case CellStatus.Sunk or CellStatus.EmptyMiss or CellStatus.Unknown:
+                        Connection.SendAsync(Encoding.Default.GetBytes("retract"), SocketFlags.None);
                         break;
                     case CellStatus.Alive:
                         PlayerGrid[xCoord][yCoord] = CellStatus.Sunk;
@@ -256,6 +265,8 @@ public class GameModel
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+
+                CurrentMove += 1;
                 OnReceive?.Invoke(xCoord, yCoord);
             }
             else if (message.Length >= 3 && message.Substring(0, 3) == "hit")
@@ -276,7 +287,7 @@ public class GameModel
             }
             else if (message.Length >= 6 && message.Substring(0, 6) == "reveal")
             {
-                //TODO: Remake
+                //TODO: Remake to reveal a singular ship
                 var coords = message.Split(" ")[1..];
                 foreach (var coord in coords)
                 {

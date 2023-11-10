@@ -23,6 +23,5 @@
             <TextBox VerticalAlignment="Center" Name="ClientPort"/>
             <Button VerticalAlignment="Center" Content="Open" Click="OpenClient"/>
         </StackPanel>
-        <Button Content="Next page" Click="NextPage"/>
     </StackPanel>
 </Page>

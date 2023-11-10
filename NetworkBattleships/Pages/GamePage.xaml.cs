@@ -176,6 +176,7 @@ namespace NetworkBattleships.Pages
             DispatcherQueue.TryEnqueue(SetColors);
             Connector._GameModel.OnReceive += ReceivedAttack;
             Connector._GameModel.OnAttack += MadeAttack;
+            Connector._GameModel.OnOpponentReady += OpponentReady;
         }
         
         private async void SetColors()
@@ -247,7 +248,6 @@ namespace NetworkBattleships.Pages
         private void PointerMove(object sender, PointerRoutedEventArgs e)
         {
             _currentCursorPosition = e.GetCurrentPoint(PlayerGrid).Position;
-            TextBlockStatus.Text = $"{_currentCursorPosition.X}\n{_currentCursorPosition.Y}";
         }
 
         private GameModel.Orientation _rotation = GameModel.Orientation.Up;
@@ -379,7 +379,7 @@ namespace NetworkBattleships.Pages
             }
             int shipSize = (int)image.Height / CellSize;
             
-            Connector._GameModel.AddShip(new Point() { X = col, Y = row }, _rotation, _ships[imageIndex]);
+            Connector._GameModel.AddShip(new Point() { X = col - 1, Y = row - 1 }, _rotation, _ships[imageIndex]);
             _ships.RemoveAt(imageIndex);
         }
 
@@ -444,7 +444,7 @@ namespace NetworkBattleships.Pages
         {
             if (Connector._GameModel.State != GameModel.GameState.Playing) return;
             Button tile = sender as Button;
-            Connector._GameModel.AttemptAttack(Grid.GetColumn(tile), Grid.GetRow(tile));
+            Connector._GameModel.AttemptAttack(Grid.GetColumn(tile) - 1, Grid.GetRow(tile) - 1);
         }
 
         private void ReceivedAttack(int xCoord, int yCoord)
@@ -456,18 +456,19 @@ namespace NetworkBattleships.Pages
                     case GameModel.CellStatus.Empty:
                         break;
                     case GameModel.CellStatus.EmptyMiss:
-                        (PlayerGrid.Children[((yCoord - 1) * (FieldSide - 1)) + xCoord - 1] as Button).Background = new SolidColorBrush(CurrentMissButtonColor.Value);
+                        (PlayerGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background = new SolidColorBrush(CurrentMissButtonColor.Value);
                         break;
                     case GameModel.CellStatus.Alive:
                         break;
                     case GameModel.CellStatus.Sunk:
-                        (PlayerGrid.Children[((yCoord - 1) * (FieldSide - 1)) + xCoord - 1] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
+                        (PlayerGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
                         break;
                     case GameModel.CellStatus.Unknown:
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException("Connector._GameModel.PlayerGrid[xCoord][yCoord]", Connector._GameModel.PlayerGrid[xCoord][yCoord], null);
                 }
+                TextBlockStatus.Text = "Your turn";
             });
         }
 
@@ -480,27 +481,52 @@ namespace NetworkBattleships.Pages
                     case GameModel.CellStatus.Empty:
                         break;
                     case GameModel.CellStatus.EmptyMiss:
-                        (OpponentGrid.Children[((yCoord - 1) * (FieldSide - 1)) + xCoord - 1] as Button).Background = new SolidColorBrush(CurrentMissButtonColor.Value);
+                        (OpponentGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background = new SolidColorBrush(CurrentMissButtonColor.Value);
                         break;
                     case GameModel.CellStatus.Alive:
                         break;
                     case GameModel.CellStatus.Sunk:
-                        (OpponentGrid.Children[((yCoord - 1) * (FieldSide - 1)) + xCoord - 1] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
+                        (OpponentGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
                         break;
                     case GameModel.CellStatus.Unknown:
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException("Connector._GameModel.OpponentGrid[xCoord][yCoord]", Connector._GameModel.OpponentGrid[xCoord][yCoord], null);
                 }
+                TextBlockStatus.Text = "Enemy turn";
             });
             
         }
 
+        private void OpponentReady(bool firstMove)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (Connector._GameModel.State == GameModel.GameState.Playing)
+                {
+                    TextBlockStatus.Text = firstMove ? "Your turn" : "Enemy turn";
+                }
+                else
+                {
+                    TextBlockStatus.Text = "The Opponent\n is ready";
+                }
+            });
+        }
+
         private void StartGame(object sender, RoutedEventArgs e)
         {
-            if (Connector._GameModel.State == GameModel.GameState.Preparation)
+            if (Connector._GameModel.State == GameModel.GameState.Preparation && (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>).Count == 0)
             {
                 Connector._GameModel.StartGame();
+                StatusGrid.RowDefinitions[2].Height = new GridLength(0, GridUnitType.Pixel);
+                if (Connector._GameModel.EnemyReady)
+                {
+                    TextBlockStatus.Text = Connector._GameModel.CurrentMove == 0 ? "Your turn" : "Enemy turn";
+                }
+                else
+                {
+                    TextBlockStatus.Text = "The Opponent\n is preparing";
+                }
             }
         }
     }
