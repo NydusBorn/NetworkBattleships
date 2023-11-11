@@ -24,19 +24,29 @@ public class GameModel
 
     public enum Orientation
     {
-        Up, Down, Left, Right
+        Up,
+        Down,
+        Left,
+        Right
     }
 
     public enum Types
     {
-        Destroyer, Submarine, Cruiser, Battleship, Carrier
+        Destroyer,
+        Submarine,
+        Cruiser,
+        Battleship,
+        Carrier
     }
 
     public enum GameState
     {
-        Preparation, Playing, Win, Loss
+        Preparation,
+        Playing,
+        Win,
+        Loss
     }
-    
+
     public Roles Role;
     public Socket Connection;
     public List<List<CellStatus>> PlayerGrid = new List<List<CellStatus>>();
@@ -95,6 +105,7 @@ public class GameModel
                 {
                     PlayerGrid[coordinate.X][i] = CellStatus.Alive;
                 }
+
                 break;
             }
             case Orientation.Left or Orientation.Right:
@@ -103,6 +114,7 @@ public class GameModel
                 {
                     PlayerGrid[i][coordinate.Y] = CellStatus.Alive;
                 }
+
                 break;
             }
             default:
@@ -126,7 +138,7 @@ public class GameModel
                     break;
                 case Types.Battleship:
                     shipSize = 4;
-                    
+
                     break;
                 case Types.Carrier:
                     shipSize = 5;
@@ -148,6 +160,7 @@ public class GameModel
                             break;
                         }
                     }
+
                     break;
                 }
                 case Orientation.Left or Orientation.Right:
@@ -160,11 +173,13 @@ public class GameModel
                             break;
                         }
                     }
+
                     break;
                 }
                 default:
                     throw new ArgumentOutOfRangeException(nameof(ship.Item2), ship.Item2, null);
             }
+
             if (found)
             {
                 type = ship.Item3;
@@ -176,6 +191,7 @@ public class GameModel
                         {
                             PlayerGrid[ship.Item1.X][i] = CellStatus.Empty;
                         }
+
                         break;
                     }
                     case Orientation.Left or Orientation.Right:
@@ -184,17 +200,18 @@ public class GameModel
                         {
                             PlayerGrid[i][ship.Item1.Y] = CellStatus.Empty;
                         }
+
                         break;
                     }
                     default:
                         throw new ArgumentOutOfRangeException(nameof(ship.Item2), ship.Item2, null);
                 }
             }
-            
         }
+
         return type.Value;
     }
-    
+
     public void AttemptAttack(int xCoord, int yCoord)
     {
         if (CurrentMove % 2 != 0 || !EnemyReady) return;
@@ -203,15 +220,11 @@ public class GameModel
         CurrentMove += 1;
     }
 
-    public void Reveal()
-    {
-        //TODO: Make to reveal a singular ship
-    }
-
     private string? LastAction = null;
     public event Action<int, int>? OnAttack;
     public event Action<int, int>? OnReceive;
     public event Action<bool>? OnOpponentReady;
+    public event Action<Point, Orientation, Types>? OnOpponentShipSunk;
 
     public void StartGame()
     {
@@ -221,6 +234,7 @@ public class GameModel
     }
 
     public int? CurrentMove { get; private set; }
+    public int PlayerRevealedShips { get; private set; } = 0;
     public bool EnemyReady { get; private set; } = false;
 
     private void MessageAwaiter()
@@ -233,10 +247,11 @@ public class GameModel
             {
                 return;
             }
-            string message = Encoding.Default.GetString(buffer, 0 , receivedBytes);
+
+            string message = Encoding.Default.GetString(buffer, 0, receivedBytes);
             if (message.Length >= 5 && message.Substring(0, 5) == "ready")
             {
-                CurrentMove ??= int.Parse(message.Split(" ")[1]) == 1 ? 0 : 1; 
+                CurrentMove ??= int.Parse(message.Split(" ")[1]) == 1 ? 0 : 1;
                 EnemyReady = true;
                 OnOpponentReady?.Invoke(CurrentMove == 0);
             }
@@ -256,7 +271,105 @@ public class GameModel
                         break;
                     case CellStatus.Alive:
                         PlayerGrid[xCoord][yCoord] = CellStatus.Sunk;
-                        Connection.SendAsync(Encoding.Default.GetBytes("hit"), SocketFlags.None);
+                        foreach (var ship in PlayerShips)
+                        {
+                            int shipSize;
+                            switch (ship.Item3)
+                            {
+                                case Types.Destroyer:
+                                    shipSize = 2;
+                                    break;
+                                case Types.Submarine or Types.Cruiser:
+                                    shipSize = 3;
+                                    break;
+                                case Types.Battleship:
+                                    shipSize = 4;
+
+                                    break;
+                                case Types.Carrier:
+                                    shipSize = 5;
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException(nameof(ship.Item3), ship.Item3, null);
+                            }
+
+                            bool found = false;
+                            switch (ship.Item2)
+                            {
+                                case Orientation.Up or Orientation.Down:
+                                {
+                                    for (int i = ship.Item1.Y; i < ship.Item1.Y + shipSize; i++)
+                                    {
+                                        if (xCoord == ship.Item1.X && yCoord == i)
+                                        {
+                                            found = true;
+                                            break;
+                                        }
+                                    }
+
+                                    break;
+                                }
+                                case Orientation.Left or Orientation.Right:
+                                {
+                                    for (int i = ship.Item1.X; i < ship.Item1.X + shipSize; i++)
+                                    {
+                                        if (xCoord == i && yCoord == ship.Item1.Y)
+                                        {
+                                            found = true;
+                                            break;
+                                        }
+                                    }
+
+                                    break;
+                                }
+                                default:
+                                    throw new ArgumentOutOfRangeException(nameof(ship.Item2), ship.Item2, null);
+                            }
+
+                            if (found)
+                            {
+                                int sunkParts = 0;
+                                switch (ship.Item2)
+                                {
+                                    case Orientation.Up or Orientation.Down:
+                                    {
+                                        for (int i = ship.Item1.Y; i < ship.Item1.Y + shipSize; i++)
+                                        {
+                                            if (PlayerGrid[ship.Item1.X][i] == CellStatus.Sunk)
+                                            {
+                                                sunkParts += 1;
+                                            }
+                                        }
+
+                                        break;
+                                    }
+                                    case Orientation.Left or Orientation.Right:
+                                    {
+                                        for (int i = ship.Item1.X; i < ship.Item1.X + shipSize; i++)
+                                        {
+                                            if (PlayerGrid[i][ship.Item1.Y] == CellStatus.Sunk)
+                                            {
+                                                sunkParts += 1;
+                                            }
+                                        }
+
+                                        break;
+                                    }
+                                    default:
+                                        throw new ArgumentOutOfRangeException(nameof(ship.Item2), ship.Item2, null);
+                                }
+
+                                if (sunkParts == shipSize)
+                                {
+                                    PlayerRevealedShips += 1;
+                                    Connection.SendAsync(Encoding.Default.GetBytes($"reveal {ship.Item1.X}{ship.Item1.Y} {ship.Item2} {ship.Item3}"), SocketFlags.None);
+                                }
+                                else
+                                {
+                                    Connection.SendAsync(Encoding.Default.GetBytes("hit"), SocketFlags.None);
+                                }
+                            }
+                        }
                         break;
                     case CellStatus.Empty:
                         PlayerGrid[xCoord][yCoord] = CellStatus.EmptyMiss;
@@ -268,6 +381,11 @@ public class GameModel
 
                 CurrentMove += 1;
                 OnReceive?.Invoke(xCoord, yCoord);
+                if (PlayerRevealedShips == 5)
+                {
+                    State = GameState.Loss;
+                    return;
+                }
             }
             else if (message.Length >= 3 && message.Substring(0, 3) == "hit")
             {
@@ -277,7 +395,7 @@ public class GameModel
                 OpponentGrid[xCoord][yCoord] = CellStatus.Sunk;
                 OnAttack?.Invoke(xCoord, yCoord);
             }
-            else if (message.Length >= 4 &&message.Substring(0, 4) == "miss")
+            else if (message.Length >= 4 && message.Substring(0, 4) == "miss")
             {
                 string coordinate = LastAction.Split(" ")[1];
                 int xCoord = coordinate[0] - '0';
@@ -287,19 +405,33 @@ public class GameModel
             }
             else if (message.Length >= 6 && message.Substring(0, 6) == "reveal")
             {
-                //TODO: Remake to reveal a singular ship
-                var coords = message.Split(" ")[1..];
-                foreach (var coord in coords)
+                string coordinate = LastAction.Split(" ")[1];
+                int xCoord = coordinate[0] - '0';
+                int yCoord = coordinate[1] - '0';
+                Orientation orient = message.Split(" ")[2] switch
                 {
-                    string coordinate = coord;
-                    int xCoord = coordinate[0] - '0';
-                    int yCoord = coordinate[1] - '0';
-                    if (OpponentGrid[xCoord][yCoord] == CellStatus.Unknown)
-                    {
-                        OpponentGrid[xCoord][yCoord] = CellStatus.Alive;
-                    }
+                    "Up" => Orientation.Up,
+                    "Down" => Orientation.Down,
+                    "Left" => Orientation.Left,
+                    "Right" => Orientation.Right,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                Types shipType = message.Split(" ")[3] switch
+                {
+                    "Destroyer" => Types.Destroyer,
+                    "Submarine" => Types.Submarine,
+                    "Cruiser" => Types.Cruiser,
+                    "Battleship" => Types.Battleship,
+                    "Carrier" => Types.Carrier,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                OpponentShips.Add((new Point(xCoord, yCoord), orient, shipType));
+                OnOpponentShipSunk?.Invoke(new Point(xCoord, yCoord), orient, shipType);
+                if (OpponentShips.Count == 5)
+                {
+                    State = GameState.Win;
+                    return;
                 }
-                return;
             }
         }
     }

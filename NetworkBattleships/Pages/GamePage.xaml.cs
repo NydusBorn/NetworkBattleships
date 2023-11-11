@@ -138,7 +138,7 @@ namespace NetworkBattleships.Pages
                 Grid.SetRow(tb, i);
                 OpponentGrid.Children.Add(tb);
             }
-            
+
             var ships = new System.Collections.ObjectModel.ObservableCollection<Image>
             {
                 new Image()
@@ -177,8 +177,9 @@ namespace NetworkBattleships.Pages
             Connector._GameModel.OnReceive += ReceivedAttack;
             Connector._GameModel.OnAttack += MadeAttack;
             Connector._GameModel.OnOpponentReady += OpponentReady;
+            Connector._GameModel.OnOpponentShipSunk += OpponentShipSunk;
         }
-        
+
         private async void SetColors()
         {
             var bt = PlayerGrid.Children[0] as Button;
@@ -245,13 +246,14 @@ namespace NetworkBattleships.Pages
         }
 
         private Windows.Foundation.Point _currentCursorPosition;
+
         private void PointerMove(object sender, PointerRoutedEventArgs e)
         {
             _currentCursorPosition = e.GetCurrentPoint(PlayerGrid).Position;
         }
 
         private GameModel.Orientation _rotation = GameModel.Orientation.Up;
-        
+
         private async void ShipDragProcess(int imgHeight, int imgWidth, CancellationToken ct)
         {
             HashSet<Point> lastPositions = new HashSet<Point>();
@@ -302,7 +304,7 @@ namespace NetworkBattleships.Pages
                         new SolidColorBrush(CurrentDefaultButtonColor.Value));
                 }
 
-                foreach (var position in newPositions.Where(x=>!lastPositions.Contains(x)))
+                foreach (var position in newPositions.Where(x => !lastPositions.Contains(x)))
                 {
                     DispatcherQueue.TryEnqueue(() =>
                         (PlayerGrid.Children[((position.X - 1) * (FieldSide - 1)) + position.Y - 1] as Button)
@@ -317,6 +319,7 @@ namespace NetworkBattleships.Pages
                     break;
                 }
             }
+
             foreach (var position in lastPositions)
             {
                 DispatcherQueue.TryEnqueue(() =>
@@ -327,24 +330,27 @@ namespace NetworkBattleships.Pages
         }
 
         private int imageIndex;
-        
+
         private void ShipDrop(object o, DragEventArgs dragEventArgs)
         {
             _dragCancellationTokenSource.Cancel();
             var currentCursorPosition = _currentCursorPosition;
-            var image = (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>)[imageIndex];
+            var image =
+                (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>)[imageIndex];
             int row = Math.Clamp((int)currentCursorPosition.Y / CellSize, 1, FieldSide - 1);
             int col = Math.Clamp((int)currentCursorPosition.X / CellSize, 1, FieldSide - 1);
             switch (_rotation)
             {
                 case GameModel.Orientation.Up:
-                    row = Math.Clamp(row - ((int)image.Height / CellSize) + 1, 1, FieldSide - ((int)image.Height / CellSize));
+                    row = Math.Clamp(row - ((int)image.Height / CellSize) + 1, 1,
+                        FieldSide - ((int)image.Height / CellSize));
                     break;
                 case GameModel.Orientation.Down:
                     row = Math.Clamp(row, 1, FieldSide - ((int)image.Height / CellSize));
                     break;
                 case GameModel.Orientation.Left:
-                    col = Math.Clamp(col - ((int)image.Height / CellSize) + 1, 1, FieldSide - ((int)image.Height / CellSize));
+                    col = Math.Clamp(col - ((int)image.Height / CellSize) + 1, 1,
+                        FieldSide - ((int)image.Height / CellSize));
                     break;
                 case GameModel.Orientation.Right:
                     col = Math.Clamp(col, 1, FieldSide - ((int)image.Height / CellSize));
@@ -354,7 +360,7 @@ namespace NetworkBattleships.Pages
             }
 
             (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>).RemoveAt(imageIndex);
-            
+
             PlayerGrid.Children.Add(image);
             image.PointerPressed += PlayerShipClick;
             Grid.SetRow(image, 0);
@@ -363,22 +369,36 @@ namespace NetworkBattleships.Pages
             switch (_rotation)
             {
                 case GameModel.Orientation.Up:
-                    image.RenderTransform = new CompositeTransform() {CenterX = image.Width / 2, CenterY = image.Height / 2, TranslateX = CellSize * col, TranslateY = CellSize * row};
+                    image.RenderTransform = new CompositeTransform()
+                    {
+                        CenterX = image.Width / 2, CenterY = image.Height / 2, TranslateX = CellSize * col,
+                        TranslateY = CellSize * row
+                    };
                     break;
                 case GameModel.Orientation.Down:
-                    image.RenderTransform = new CompositeTransform(){ Rotation = 180, CenterX = image.Width / 2, CenterY = image.Height / 2, TranslateX = CellSize * col, TranslateY = CellSize * row};
+                    image.RenderTransform = new CompositeTransform()
+                    {
+                        Rotation = 180, CenterX = image.Width / 2, CenterY = image.Height / 2,
+                        TranslateX = CellSize * col, TranslateY = CellSize * row
+                    };
                     break;
                 case GameModel.Orientation.Left:
-                    image.RenderTransform = new CompositeTransform(){Rotation = 270, TranslateX = CellSize * col, TranslateY = CellSize * (1 + row)};
+                    image.RenderTransform = new CompositeTransform()
+                        { Rotation = 270, TranslateX = CellSize * col, TranslateY = CellSize * (1 + row) };
                     break;
                 case GameModel.Orientation.Right:
-                    image.RenderTransform = new CompositeTransform(){Rotation = 90, TranslateX = CellSize * (col + ((int)image.Height / CellSize)), TranslateY = CellSize * (row)};
+                    image.RenderTransform = new CompositeTransform()
+                    {
+                        Rotation = 90, TranslateX = CellSize * (col + ((int)image.Height / CellSize)),
+                        TranslateY = CellSize * (row)
+                    };
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
             int shipSize = (int)image.Height / CellSize;
-            
+
             Connector._GameModel.AddShip(new Point() { X = col - 1, Y = row - 1 }, _rotation, _ships[imageIndex]);
             _ships.RemoveAt(imageIndex);
         }
@@ -417,6 +437,7 @@ namespace NetworkBattleships.Pages
                     throw new ArgumentOutOfRangeException();
             }
         }
+
         private void KeyPress(object sender, KeyRoutedEventArgs e)
         {
             if (e.Key == VirtualKey.R)
@@ -424,7 +445,7 @@ namespace NetworkBattleships.Pages
                 ChangeRotationState();
             }
         }
-        
+
         private void PlayerShipClick(object sender, PointerRoutedEventArgs eventArgs)
         {
             if (Connector._GameModel.State == GameModel.GameState.Preparation)
@@ -456,19 +477,30 @@ namespace NetworkBattleships.Pages
                     case GameModel.CellStatus.Empty:
                         break;
                     case GameModel.CellStatus.EmptyMiss:
-                        (PlayerGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background = new SolidColorBrush(CurrentMissButtonColor.Value);
+                        (PlayerGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
+                            new SolidColorBrush(CurrentMissButtonColor.Value);
                         break;
                     case GameModel.CellStatus.Alive:
                         break;
                     case GameModel.CellStatus.Sunk:
-                        (PlayerGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
+                        (PlayerGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
+                            new SolidColorBrush(CurrentSunkButtonColor.Value);
                         break;
                     case GameModel.CellStatus.Unknown:
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException("Connector._GameModel.PlayerGrid[xCoord][yCoord]", Connector._GameModel.PlayerGrid[xCoord][yCoord], null);
+                        throw new ArgumentOutOfRangeException("Connector._GameModel.PlayerGrid[xCoord][yCoord]",
+                            Connector._GameModel.PlayerGrid[xCoord][yCoord], null);
                 }
-                TextBlockStatus.Text = "Your turn";
+
+                if (Connector._GameModel.State == GameModel.GameState.Loss)
+                {
+                    TextBlockStatus.Text = "You lost";
+                }
+                else
+                {
+                    TextBlockStatus.Text = "Your turn";
+                }
             });
         }
 
@@ -481,21 +513,24 @@ namespace NetworkBattleships.Pages
                     case GameModel.CellStatus.Empty:
                         break;
                     case GameModel.CellStatus.EmptyMiss:
-                        (OpponentGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background = new SolidColorBrush(CurrentMissButtonColor.Value);
+                        (OpponentGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
+                            new SolidColorBrush(CurrentMissButtonColor.Value);
                         break;
                     case GameModel.CellStatus.Alive:
                         break;
                     case GameModel.CellStatus.Sunk:
-                        (OpponentGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
+                        (OpponentGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
+                            new SolidColorBrush(CurrentSunkButtonColor.Value);
                         break;
                     case GameModel.CellStatus.Unknown:
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException("Connector._GameModel.OpponentGrid[xCoord][yCoord]", Connector._GameModel.OpponentGrid[xCoord][yCoord], null);
+                        throw new ArgumentOutOfRangeException("Connector._GameModel.OpponentGrid[xCoord][yCoord]",
+                            Connector._GameModel.OpponentGrid[xCoord][yCoord], null);
                 }
+
                 TextBlockStatus.Text = "Enemy turn";
             });
-            
         }
 
         private void OpponentReady(bool firstMove)
@@ -515,10 +550,12 @@ namespace NetworkBattleships.Pages
 
         private void StartGame(object sender, RoutedEventArgs e)
         {
-            if (Connector._GameModel.State == GameModel.GameState.Preparation && (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>).Count == 0)
+            if (Connector._GameModel.State == GameModel.GameState.Preparation &&
+                (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>).Count == 0)
             {
                 Connector._GameModel.StartGame();
                 StatusGrid.RowDefinitions[2].Height = new GridLength(0, GridUnitType.Pixel);
+                GameGrid.ColumnDefinitions[0].Width = new GridLength(0, GridUnitType.Pixel);
                 if (Connector._GameModel.EnemyReady)
                 {
                     TextBlockStatus.Text = Connector._GameModel.CurrentMove == 0 ? "Your turn" : "Enemy turn";
@@ -528,6 +565,97 @@ namespace NetworkBattleships.Pages
                     TextBlockStatus.Text = "The Opponent\n is preparing";
                 }
             }
+        }
+
+        private void OpponentShipSunk(Point coord, GameModel.Orientation orientation, GameModel.Types type)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                int shipSize = type switch
+                {
+                    GameModel.Types.Carrier => 5,
+                    GameModel.Types.Battleship => 4,
+                    GameModel.Types.Cruiser => 3,
+                    GameModel.Types.Submarine => 3,
+                    GameModel.Types.Destroyer => 2,
+                    _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+                };
+                var image = new Image
+                {
+                    Source = new SvgImageSource(new Uri($"ms-appx:///Assets/Opponent{type}.svg")),
+                    Stretch = Stretch.Fill, RasterizationScale = 8, Width = CellSize, Height = CellSize * shipSize
+                };
+                OpponentGrid.Children.Add(image);
+                Grid.SetRow(image, 0);
+                Grid.SetColumn(image, 0);
+                Grid.SetRowSpan(image, (int)image.Height / CellSize);
+                int row = coord.Y + 1;
+                int col = coord.X + 1;
+                //TODO: fix orientations
+                switch (orientation)
+                {
+                    case GameModel.Orientation.Up:
+                        image.RenderTransform = new CompositeTransform()
+                        {
+                            CenterX = image.Width / 2, CenterY = image.Height / 2, TranslateX = CellSize * col,
+                            TranslateY = CellSize * (row - shipSize + 1) 
+                        };
+                        break;
+                    case GameModel.Orientation.Down:
+                        image.RenderTransform = new CompositeTransform()
+                        {
+                            Rotation = 180, CenterX = image.Width / 2, CenterY = image.Height / 2,
+                            TranslateX = CellSize * col, TranslateY = CellSize * (row - shipSize + 1)
+                        };
+                        break;
+                    case GameModel.Orientation.Left:
+                        image.RenderTransform = new CompositeTransform()
+                            { Rotation = 270, TranslateX = CellSize * (col - shipSize + 1), TranslateY = CellSize * (1 + row) };
+                        break;
+                    case GameModel.Orientation.Right:
+                        image.RenderTransform = new CompositeTransform()
+                        {
+                            Rotation = 90, TranslateX = CellSize * (col + 1),
+                            TranslateY = CellSize * (row)
+                        };
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null);
+                }
+                //TODO: fix offsets
+                switch (orientation)
+                {
+                    case GameModel.Orientation.Up or GameModel.Orientation.Down:
+                    {
+                        for (int i = coord.Y - shipSize + 1; i < coord.Y + 1; i++)
+                        {
+                            (OpponentGrid.Children[i * (FieldSide - 1) + coord.X] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
+                        }
+
+                        break;
+                    }
+                    case GameModel.Orientation.Left or GameModel.Orientation.Right:
+                    {
+                        for (int i = coord.X - shipSize + 1; i < coord.X + 1; i++)
+                        {
+                            (OpponentGrid.Children[coord.Y * (FieldSide - 1) + i] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
+                        }
+
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null);
+                }
+                
+                if (Connector._GameModel.State == GameModel.GameState.Win)
+                {
+                    TextBlockStatus.Text = "You won";
+                }
+                else
+                {
+                    TextBlockStatus.Text = "Enemy turn";
+                }
+            });
         }
     }
 }
