@@ -9,19 +9,21 @@
     mc:Ignorable="d"
     Background="{ThemeResource SystemControlDisabledTransparentBrush}">
 
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="5">
-        <TextBlock Name="IpTextBlock" />
-        <StackPanel Orientation="Horizontal" Spacing="2">
-            <TextBlock VerticalAlignment="Center" Text="Open a server at port" />
-            <TextBox VerticalAlignment="Center" Name="ServerPort"/>
-            <Button VerticalAlignment="Center" Content="Open" Click="OpenServer"/>
+    <Border HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20" CornerRadius="15" Background="{ThemeResource ButtonRevealBackgroundDisabled}">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="5">
+            <TextBlock Name="IpTextBlock" />
+            <StackPanel Orientation="Horizontal" Spacing="2">
+                <TextBlock VerticalAlignment="Center" Text="Open a server at port" />
+                <TextBox VerticalAlignment="Center" Name="ServerPort"/>
+                <Button VerticalAlignment="Center" Content="Open" Click="OpenServer"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="2">
+                <TextBlock VerticalAlignment="Center" Text="Connect to a server" />
+                <TextBox VerticalAlignment="Center" Name="ClientIp"/>
+                <TextBlock VerticalAlignment="Center" Text=":" />
+                <TextBox VerticalAlignment="Center" Name="ClientPort"/>
+                <Button VerticalAlignment="Center" Content="Open" Click="OpenClient"/>
+            </StackPanel>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Spacing="2">
-            <TextBlock VerticalAlignment="Center" Text="Connect to a server" />
-            <TextBox VerticalAlignment="Center" Name="ClientIp"/>
-            <TextBlock VerticalAlignment="Center" Text=":" />
-            <TextBox VerticalAlignment="Center" Name="ClientPort"/>
-            <Button VerticalAlignment="Center" Content="Open" Click="OpenClient"/>
-        </StackPanel>
-    </StackPanel>
+    </Border>
 </Page>
