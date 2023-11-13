@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
+using Windows.UI.Popups;
 using BattleshipsModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -52,23 +54,62 @@ namespace NetworkBattleships.Pages
         public Socket CurrentSocket;
         public Socket ClientSocket;
 
-        private void OpenServer(object sender, RoutedEventArgs e)
+        private void OpenServer(object sender, RoutedEventArgs eArgs)
         {
-            Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
-            CurrentSocket = server;
-            CurrentSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(ServerPort.Text)));
-            CurrentSocket.Listen(10);
-            ClientSocket = CurrentSocket.Accept();
-            Connector._GameModel = new GameModel(GameModel.Roles.Server, ClientSocket);
+            try
+            {
+                Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
+                CurrentSocket = server;
+                CurrentSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(ServerPort.Text)));
+                CurrentSocket.Listen(10);
+                ClientSocket = CurrentSocket.Accept();
+                Connector._GameModel = new GameModel(GameModel.Roles.Server, ClientSocket);
+            }
+            catch (Exception e)
+            {
+                ContentDialog dialog = new ContentDialog();
+
+                // XamlRoot must be set in the case of a ContentDialog running in a Desktop app
+                dialog.XamlRoot = this.XamlRoot;
+                dialog.Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
+                dialog.Title = "Error on connection";
+                dialog.Content = $"Error: {e.Message}";
+                dialog.CloseButtonText = "Close";
+                dialog.DefaultButton = ContentDialogButton.Close;
+
+                var result = dialog.ShowAsync().GetResults();
+                
+                return;
+            }
             NextPage();
         }
 
         private void OpenClient(object sender, RoutedEventArgs routedEventArgs)
         {
-            Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
-            CurrentSocket = client;
-            CurrentSocket.Connect(IPAddress.Parse(ClientIp.Text), int.Parse(ClientPort.Text));
-            Connector._GameModel = new GameModel(GameModel.Roles.Client, CurrentSocket);
+            try
+            {
+                Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
+                CurrentSocket = client;
+                CurrentSocket.Connect(IPAddress.Parse(ClientIp.Text), int.Parse(ClientPort.Text));
+                Connector._GameModel = new GameModel(GameModel.Roles.Client, CurrentSocket);
+            }
+            catch (Exception e)
+            {
+                ContentDialog dialog = new ContentDialog();
+
+                // XamlRoot must be set in the case of a ContentDialog running in a Desktop app
+                dialog.XamlRoot = this.XamlRoot;
+                dialog.Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
+                dialog.Title = "Error on connection";
+                dialog.Content = $"Error: {e.Message}";
+                dialog.CloseButtonText = "Close";
+                dialog.DefaultButton = ContentDialogButton.Close;
+
+                var result = dialog.ShowAsync().GetResults();
+                
+                return;
+            }
+            
             NextPage();
         }
 
