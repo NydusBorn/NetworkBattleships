@@ -306,10 +306,20 @@ namespace NetworkBattleships.Pages
 
                 foreach (var position in newPositions.Where(x => !lastPositions.Contains(x)))
                 {
-                    DispatcherQueue.TryEnqueue(() =>
-                        (PlayerGrid.Children[((position.X - 1) * (FieldSide - 1)) + position.Y - 1] as Button)
-                        .Background =
-                        new SolidColorBrush(CurrentHoverButtonColor.Value));
+                    if (Connector._GameModel.PlayerGrid[position.Y - 1][position.X - 1] == GameModel.CellStatus.Alive)
+                    {
+                        DispatcherQueue.TryEnqueue(() =>
+                            (PlayerGrid.Children[((position.X - 1) * (FieldSide - 1)) + position.Y - 1] as Button)
+                            .Background =
+                            new SolidColorBrush(CurrentSunkButtonColor.Value));
+                    }
+                    else
+                    {
+                        DispatcherQueue.TryEnqueue(() =>
+                            (PlayerGrid.Children[((position.X - 1) * (FieldSide - 1)) + position.Y - 1] as Button)
+                            .Background =
+                            new SolidColorBrush(CurrentHoverButtonColor.Value));
+                    }
                 }
 
                 lastPositions = newPositions;
@@ -358,6 +368,32 @@ namespace NetworkBattleships.Pages
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            
+            var shipSize = (int)image.Height / CellSize;
+
+            switch (_rotation)
+            {
+                case GameModel.Orientation.Up or GameModel.Orientation.Down:
+                    for (int i = row; i < row + shipSize; i++)
+                    {
+                        if (Connector._GameModel.PlayerGrid[col - 1][i - 1] == GameModel.CellStatus.Alive)
+                        {
+                            return;
+                        }
+                    }
+                    break;
+                case GameModel.Orientation.Left or GameModel.Orientation.Right:
+                    for (int i = col; i < col + shipSize; i++)
+                    {
+                        if (Connector._GameModel.PlayerGrid[i - 1][row - 1] == GameModel.CellStatus.Alive)
+                        {
+                            return;
+                        }
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             (ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>).RemoveAt(imageIndex);
 
@@ -396,9 +432,7 @@ namespace NetworkBattleships.Pages
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
-            int shipSize = (int)image.Height / CellSize;
-
+            
             Connector._GameModel.AddShip(new Point() { X = col - 1, Y = row - 1 }, _rotation, _ships[imageIndex]);
             _ships.RemoveAt(imageIndex);
         }
