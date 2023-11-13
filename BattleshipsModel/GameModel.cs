@@ -405,7 +405,7 @@ public class GameModel
             }
             else if (message.Length >= 6 && message.Substring(0, 6) == "reveal")
             {
-                string coordinate = LastAction.Split(" ")[1];
+                string coordinate = message.Split(" ")[1];
                 int xCoord = coordinate[0] - '0';
                 int yCoord = coordinate[1] - '0';
                 Orientation orient = message.Split(" ")[2] switch

@@ -199,7 +199,7 @@ namespace NetworkBattleships.Pages
             CurrentSunkButtonColor = new Color()
             {
                 R = (byte)(CurrentDefaultButtonColor.Value.R), G = (byte)(CurrentDefaultButtonColor.Value.G - 200),
-                B = (byte)(CurrentDefaultButtonColor.Value.B - 200), A = CurrentDefaultButtonColor.Value.A
+                B = (byte)(CurrentDefaultButtonColor.Value.B - 200), A = 100
             };
             CurrentMissButtonColor = new Color()
             {
@@ -598,36 +598,35 @@ namespace NetworkBattleships.Pages
                         image.RenderTransform = new CompositeTransform()
                         {
                             CenterX = image.Width / 2, CenterY = image.Height / 2, TranslateX = CellSize * col,
-                            TranslateY = CellSize * (row - shipSize + 1) 
+                            TranslateY = CellSize * row
                         };
                         break;
                     case GameModel.Orientation.Down:
                         image.RenderTransform = new CompositeTransform()
                         {
                             Rotation = 180, CenterX = image.Width / 2, CenterY = image.Height / 2,
-                            TranslateX = CellSize * col, TranslateY = CellSize * (row - shipSize + 1)
+                            TranslateX = CellSize * col, TranslateY = CellSize * row
                         };
                         break;
                     case GameModel.Orientation.Left:
                         image.RenderTransform = new CompositeTransform()
-                            { Rotation = 270, TranslateX = CellSize * (col - shipSize + 1), TranslateY = CellSize * (1 + row) };
+                            { Rotation = 270, TranslateX = CellSize * col, TranslateY = CellSize * (1 + row) };
                         break;
                     case GameModel.Orientation.Right:
                         image.RenderTransform = new CompositeTransform()
                         {
-                            Rotation = 90, TranslateX = CellSize * (col + 1),
+                            Rotation = 90, TranslateX = CellSize * (col + ((int)image.Height / CellSize)),
                             TranslateY = CellSize * (row)
                         };
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null);
                 }
-                //TODO: fix offsets
                 switch (orientation)
                 {
                     case GameModel.Orientation.Up or GameModel.Orientation.Down:
                     {
-                        for (int i = coord.Y - shipSize + 1; i < coord.Y + 1; i++)
+                        for (int i = coord.Y; i < coord.Y + shipSize; i++)
                         {
                             (OpponentGrid.Children[i * (FieldSide - 1) + coord.X] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
                         }
@@ -636,7 +635,7 @@ namespace NetworkBattleships.Pages
                     }
                     case GameModel.Orientation.Left or GameModel.Orientation.Right:
                     {
-                        for (int i = coord.X - shipSize + 1; i < coord.X + 1; i++)
+                        for (int i = coord.X; i < coord.X + shipSize; i++)
                         {
                             (OpponentGrid.Children[coord.Y * (FieldSide - 1) + i] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
                         }
