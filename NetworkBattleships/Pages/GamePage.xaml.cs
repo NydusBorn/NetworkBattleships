@@ -167,6 +167,11 @@ namespace NetworkBattleships.Pages
                     Stretch = Stretch.Fill, RasterizationScale = 8, Width = CellSize, Height = CellSize * 5
                 }
             };
+            foreach (var img in ships)
+            {
+                img.KeyDown += KeyPress;
+            }
+            
             _ships.Add(GameModel.Types.Destroyer);
             _ships.Add(GameModel.Types.Submarine);
             _ships.Add(GameModel.Types.Cruiser);
@@ -502,7 +507,7 @@ namespace NetworkBattleships.Pages
             Connector._GameModel.AttemptAttack(Grid.GetColumn(tile) - 1, Grid.GetRow(tile) - 1);
         }
 
-        private void ReceivedAttack(int xCoord, int yCoord)
+        private void ReceivedAttack(int xCoord, int yCoord, GameModel.Types type)
         {
             DispatcherQueue.TryEnqueue(() =>
             {
@@ -513,12 +518,22 @@ namespace NetworkBattleships.Pages
                     case GameModel.CellStatus.EmptyMiss:
                         (PlayerGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
                             new SolidColorBrush(CurrentMissButtonColor.Value);
+                        ListViewStatus.Items.Add(new StatusMessage($"Opponent missed at {xCoord + 1}{(char)(yCoord + 'A')}", StatusMessage.SideAlignment.Right));
                         break;
                     case GameModel.CellStatus.Alive:
                         break;
                     case GameModel.CellStatus.Sunk:
                         (PlayerGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
                             new SolidColorBrush(CurrentSunkButtonColor.Value);
+                        if (type != GameModel.Types.None)
+                        {
+                            ListViewStatus.Items.Add(new StatusMessage($"Opponent sunk your {type}", StatusMessage.SideAlignment.Right));
+                        }
+                        else
+                        {
+                            ListViewStatus.Items.Add(new StatusMessage($"Opponent hit your {type} at {xCoord + 1}{(char)(yCoord + 'A')}", StatusMessage.SideAlignment.Right));
+                        }
+                        
                         break;
                     case GameModel.CellStatus.Unknown:
                         break;
@@ -530,6 +545,7 @@ namespace NetworkBattleships.Pages
                 if (Connector._GameModel.State == GameModel.GameState.Loss)
                 {
                     TextBlockStatus.Text = "You lost";
+                    ListViewStatus.Items.Add(new StatusMessage("Game concluded", StatusMessage.SideAlignment.Stretch));
                 }
                 else
                 {
@@ -549,12 +565,14 @@ namespace NetworkBattleships.Pages
                     case GameModel.CellStatus.EmptyMiss:
                         (OpponentGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
                             new SolidColorBrush(CurrentMissButtonColor.Value);
+                        ListViewStatus.Items.Add(new StatusMessage($"You missed at {xCoord + 1}{(char)(yCoord + 'A')}", StatusMessage.SideAlignment.Left));
                         break;
                     case GameModel.CellStatus.Alive:
                         break;
                     case GameModel.CellStatus.Sunk:
                         (OpponentGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
                             new SolidColorBrush(CurrentSunkButtonColor.Value);
+                        ListViewStatus.Items.Add(new StatusMessage($"You hit a ship at {xCoord + 1}{(char)(yCoord + 'A')}", StatusMessage.SideAlignment.Left));
                         break;
                     case GameModel.CellStatus.Unknown:
                         break;
@@ -579,6 +597,7 @@ namespace NetworkBattleships.Pages
                 {
                     TextBlockStatus.Text = "The Opponent\n is ready";
                 }
+                ListViewStatus.Items.Add(new StatusMessage("Opponent is ready", StatusMessage.SideAlignment.Right));
             });
         }
 
@@ -598,6 +617,7 @@ namespace NetworkBattleships.Pages
                 {
                     TextBlockStatus.Text = "The Opponent\n is preparing";
                 }
+                ListViewStatus.Items.Add(new StatusMessage("You are ready", StatusMessage.SideAlignment.Left));
             }
         }
 
@@ -625,7 +645,6 @@ namespace NetworkBattleships.Pages
                 Grid.SetRowSpan(image, (int)image.Height / CellSize);
                 int row = coord.Y + 1;
                 int col = coord.X + 1;
-                //TODO: fix orientations
                 switch (orientation)
                 {
                     case GameModel.Orientation.Up:
@@ -680,9 +699,12 @@ namespace NetworkBattleships.Pages
                         throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null);
                 }
                 
+                ListViewStatus.Items.Add(new StatusMessage($"You sunk Opponents {type}", StatusMessage.SideAlignment.Left));
+                
                 if (Connector._GameModel.State == GameModel.GameState.Win)
                 {
                     TextBlockStatus.Text = "You won";
+                    ListViewStatus.Items.Add(new StatusMessage("Game concluded", StatusMessage.SideAlignment.Stretch));
                 }
                 else
                 {

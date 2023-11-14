@@ -32,6 +32,7 @@ public class GameModel
 
     public enum Types
     {
+        None,
         Destroyer,
         Submarine,
         Cruiser,
@@ -222,7 +223,7 @@ public class GameModel
 
     private string? LastAction = null;
     public event Action<int, int>? OnAttack;
-    public event Action<int, int>? OnReceive;
+    public event Action<int, int, Types>? OnReceive;
     public event Action<bool>? OnOpponentReady;
     public event Action<Point, Orientation, Types>? OnOpponentShipSunk;
 
@@ -363,10 +364,12 @@ public class GameModel
                                 {
                                     PlayerRevealedShips += 1;
                                     Connection.SendAsync(Encoding.Default.GetBytes($"reveal {ship.Item1.X}{ship.Item1.Y} {ship.Item2} {ship.Item3}"), SocketFlags.None);
+                                    OnReceive?.Invoke(xCoord, yCoord, ship.Item3);
                                 }
                                 else
                                 {
                                     Connection.SendAsync(Encoding.Default.GetBytes("hit"), SocketFlags.None);
+                                    OnReceive?.Invoke(xCoord, yCoord, ship.Item3);
                                 }
                             }
                         }
@@ -374,13 +377,13 @@ public class GameModel
                     case CellStatus.Empty:
                         PlayerGrid[xCoord][yCoord] = CellStatus.EmptyMiss;
                         Connection.SendAsync(Encoding.Default.GetBytes("miss"), SocketFlags.None);
+                        OnReceive?.Invoke(xCoord, yCoord, Types.None);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
 
                 CurrentMove += 1;
-                OnReceive?.Invoke(xCoord, yCoord);
                 if (PlayerRevealedShips == 5)
                 {
                     State = GameState.Loss;
