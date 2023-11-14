@@ -280,9 +280,9 @@ public class GameModel
     /// </summary>
     public event Action<int, int>? OnAttack;
     /// <summary>
-    /// Opponent sent a successfully received attack, on handling it must noted that it may go from outside of the main thread
+    /// Opponent sent a successfully received attack, will have type if it's a ship, and a bool if it was sunk on handling it must noted that it may go from outside of the main thread
     /// </summary>
-    public event Action<int, int, Types>? OnReceive;
+    public event Action<int, int, Types, bool>? OnReceive;
     /// <summary>
     /// Opponent has placed his ships, on handling it must noted that it may go from outside of the main thread
     /// </summary>
@@ -446,12 +446,12 @@ public class GameModel
                                 {
                                     PlayerRevealedShips += 1;
                                     Connection.SendAsync(Encoding.Default.GetBytes($"reveal {ship.Item1.X}{ship.Item1.Y} {ship.Item2} {ship.Item3}"), SocketFlags.None);
-                                    OnReceive?.Invoke(xCoord, yCoord, ship.Item3);
+                                    OnReceive?.Invoke(xCoord, yCoord, ship.Item3, true);
                                 }
                                 else
                                 {
                                     Connection.SendAsync(Encoding.Default.GetBytes("hit"), SocketFlags.None);
-                                    OnReceive?.Invoke(xCoord, yCoord, ship.Item3);
+                                    OnReceive?.Invoke(xCoord, yCoord, ship.Item3, false);
                                 }
                             }
                         }
@@ -459,7 +459,7 @@ public class GameModel
                     case CellStatus.Empty:
                         PlayerGrid[xCoord][yCoord] = CellStatus.EmptyMiss;
                         Connection.SendAsync(Encoding.Default.GetBytes("miss"), SocketFlags.None);
-                        OnReceive?.Invoke(xCoord, yCoord, Types.None);
+                        OnReceive?.Invoke(xCoord, yCoord, Types.None, false);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

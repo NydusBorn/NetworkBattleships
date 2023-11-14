@@ -568,7 +568,7 @@ namespace NetworkBattleships.Pages
         /// <param name="yCoord"></param>
         /// <param name="type"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        private void ReceivedAttack(int xCoord, int yCoord, GameModel.Types type)
+        private void ReceivedAttack(int xCoord, int yCoord, GameModel.Types type, bool isSunk)
         {
             DispatcherQueue.TryEnqueue(() =>
             {
@@ -588,7 +588,7 @@ namespace NetworkBattleships.Pages
                     case GameModel.CellStatus.Sunk:
                         (PlayerGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
                             new SolidColorBrush(CurrentSunkButtonColor.Value);
-                        if (type != GameModel.Types.None)
+                        if (isSunk)
                         {
                             ListViewStatus.Items.Add(new StatusMessage($"Opponent sunk your {type}",
                                 StatusMessage.SideAlignment.Right));
