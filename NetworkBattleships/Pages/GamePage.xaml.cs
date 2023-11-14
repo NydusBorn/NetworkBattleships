@@ -29,7 +29,12 @@ namespace NetworkBattleships.Pages
     public sealed partial class GamePage : Page
     {
         const int FieldSide = 11;
+
+        /// <summary>
+        /// Cell size of a grid in pixels
+        /// </summary>
         const int CellSize = 50;
+
         private Color? CurrentDefaultButtonColor = null;
         private Color? CurrentHoverButtonColor = null;
         private Color? CurrentSunkButtonColor = null;
@@ -171,7 +176,7 @@ namespace NetworkBattleships.Pages
             {
                 img.KeyDown += KeyPress;
             }
-            
+
             _ships.Add(GameModel.Types.Destroyer);
             _ships.Add(GameModel.Types.Submarine);
             _ships.Add(GameModel.Types.Cruiser);
@@ -185,6 +190,9 @@ namespace NetworkBattleships.Pages
             Connector._GameModel.OnOpponentShipSunk += OpponentShipSunk;
         }
 
+        /// <summary>
+        /// Sets the colors used for cells
+        /// </summary>
         private async void SetColors()
         {
             var bt = PlayerGrid.Children[0] as Button;
@@ -214,6 +222,11 @@ namespace NetworkBattleships.Pages
             };
         }
 
+        /// <summary>
+        /// Dragging process over a cell
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ShipDragOver(object sender, DragEventArgs e)
         {
             var cursorPosition = e.GetPosition(PlayerGrid);
@@ -223,6 +236,11 @@ namespace NetworkBattleships.Pages
 
         private CancellationTokenSource _dragCancellationTokenSource = new CancellationTokenSource();
 
+        /// <summary>
+        /// Starts dragging of a ship
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ShipDragStart(object sender, DragStartingEventArgs e)
         {
             var images = ShipsPanel.ItemsSource as System.Collections.ObjectModel.ObservableCollection<Image>;
@@ -259,6 +277,13 @@ namespace NetworkBattleships.Pages
 
         private GameModel.Orientation _rotation = GameModel.Orientation.Up;
 
+        /// <summary>
+        /// Sets cell colors during dragging
+        /// </summary>
+        /// <param name="imgHeight"></param>
+        /// <param name="imgWidth"></param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         private async void ShipDragProcess(int imgHeight, int imgWidth, CancellationToken ct)
         {
             HashSet<Point> lastPositions = new HashSet<Point>();
@@ -346,6 +371,12 @@ namespace NetworkBattleships.Pages
 
         private int imageIndex;
 
+        /// <summary>
+        /// Places a ship
+        /// </summary>
+        /// <param name="o"></param>
+        /// <param name="dragEventArgs"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         private void ShipDrop(object o, DragEventArgs dragEventArgs)
         {
             _dragCancellationTokenSource.Cancel();
@@ -373,7 +404,7 @@ namespace NetworkBattleships.Pages
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             var shipSize = (int)image.Height / CellSize;
 
             switch (_rotation)
@@ -386,6 +417,7 @@ namespace NetworkBattleships.Pages
                             return;
                         }
                     }
+
                     break;
                 case GameModel.Orientation.Left or GameModel.Orientation.Right:
                     for (int i = col; i < col + shipSize; i++)
@@ -395,6 +427,7 @@ namespace NetworkBattleships.Pages
                             return;
                         }
                     }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -437,7 +470,7 @@ namespace NetworkBattleships.Pages
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             Connector._GameModel.AddShip(new Point() { X = col - 1, Y = row - 1 }, _rotation, _ships[imageIndex]);
             _ships.RemoveAt(imageIndex);
         }
@@ -447,11 +480,21 @@ namespace NetworkBattleships.Pages
             _dragCancellationTokenSource.Cancel();
         }
 
+        /// <summary>
+        /// Change rotation to place the ships with
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ChangeRotation(object sender, RoutedEventArgs e)
         {
             ChangeRotationState();
         }
 
+        /// <summary>
+        /// Makes the rotation, changes the button text
+        /// Order of rotation: Up -> Right -> Down -> Left -> Up ...
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         private void ChangeRotationState()
         {
             switch (_rotation)
@@ -485,6 +528,11 @@ namespace NetworkBattleships.Pages
             }
         }
 
+        /// <summary>
+        /// Attempts to remove a ship from the players grid
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
         private void PlayerShipClick(object sender, PointerRoutedEventArgs eventArgs)
         {
             if (Connector._GameModel.State == GameModel.GameState.Preparation)
@@ -492,6 +540,7 @@ namespace NetworkBattleships.Pages
                 Image image = sender as Image;
                 var point = eventArgs.GetCurrentPoint(PlayerGrid).Position;
                 var shipType = Connector._GameModel.RemoveShip(((int)point.X / 50) - 1, ((int)point.Y / 50) - 1);
+                if (shipType == GameModel.Types.None) return;
                 _ships.Add(shipType);
                 PlayerGrid.Children.Remove(image);
                 image.RenderTransform = null;
@@ -500,6 +549,11 @@ namespace NetworkBattleships.Pages
             }
         }
 
+        /// <summary>
+        /// Attempts to attack the enemy
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="routedEventArgs"></param>
         private void EnemyTileClick(object sender, RoutedEventArgs routedEventArgs)
         {
             if (Connector._GameModel.State != GameModel.GameState.Playing) return;
@@ -507,6 +561,13 @@ namespace NetworkBattleships.Pages
             Connector._GameModel.AttemptAttack(Grid.GetColumn(tile) - 1, Grid.GetRow(tile) - 1);
         }
 
+        /// <summary>
+        /// highlights the attacked cell, updates the listview (status messages)
+        /// </summary>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        /// <param name="type"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         private void ReceivedAttack(int xCoord, int yCoord, GameModel.Types type)
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -518,7 +579,9 @@ namespace NetworkBattleships.Pages
                     case GameModel.CellStatus.EmptyMiss:
                         (PlayerGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
                             new SolidColorBrush(CurrentMissButtonColor.Value);
-                        ListViewStatus.Items.Add(new StatusMessage($"Opponent missed at {xCoord + 1}{(char)(yCoord + 'A')}", StatusMessage.SideAlignment.Right));
+                        ListViewStatus.Items.Add(new StatusMessage(
+                            $"Opponent missed at {xCoord + 1}{(char)(yCoord + 'A')}",
+                            StatusMessage.SideAlignment.Right));
                         break;
                     case GameModel.CellStatus.Alive:
                         break;
@@ -527,13 +590,16 @@ namespace NetworkBattleships.Pages
                             new SolidColorBrush(CurrentSunkButtonColor.Value);
                         if (type != GameModel.Types.None)
                         {
-                            ListViewStatus.Items.Add(new StatusMessage($"Opponent sunk your {type}", StatusMessage.SideAlignment.Right));
+                            ListViewStatus.Items.Add(new StatusMessage($"Opponent sunk your {type}",
+                                StatusMessage.SideAlignment.Right));
                         }
                         else
                         {
-                            ListViewStatus.Items.Add(new StatusMessage($"Opponent hit your {type} at {xCoord + 1}{(char)(yCoord + 'A')}", StatusMessage.SideAlignment.Right));
+                            ListViewStatus.Items.Add(new StatusMessage(
+                                $"Opponent hit your {type} at {xCoord + 1}{(char)(yCoord + 'A')}",
+                                StatusMessage.SideAlignment.Right));
                         }
-                        
+
                         break;
                     case GameModel.CellStatus.Unknown:
                         break;
@@ -554,6 +620,12 @@ namespace NetworkBattleships.Pages
             });
         }
 
+        /// <summary>
+        /// highlights the attacked cell, updates the listview (status messages)
+        /// </summary>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         private void MadeAttack(int xCoord, int yCoord)
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -565,14 +637,16 @@ namespace NetworkBattleships.Pages
                     case GameModel.CellStatus.EmptyMiss:
                         (OpponentGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
                             new SolidColorBrush(CurrentMissButtonColor.Value);
-                        ListViewStatus.Items.Add(new StatusMessage($"You missed at {xCoord + 1}{(char)(yCoord + 'A')}", StatusMessage.SideAlignment.Left));
+                        ListViewStatus.Items.Add(new StatusMessage($"You missed at {xCoord + 1}{(char)(yCoord + 'A')}",
+                            StatusMessage.SideAlignment.Left));
                         break;
                     case GameModel.CellStatus.Alive:
                         break;
                     case GameModel.CellStatus.Sunk:
                         (OpponentGrid.Children[((yCoord) * (FieldSide - 1)) + xCoord] as Button).Background =
                             new SolidColorBrush(CurrentSunkButtonColor.Value);
-                        ListViewStatus.Items.Add(new StatusMessage($"You hit a ship at {xCoord + 1}{(char)(yCoord + 'A')}", StatusMessage.SideAlignment.Left));
+                        ListViewStatus.Items.Add(new StatusMessage(
+                            $"You hit a ship at {xCoord + 1}{(char)(yCoord + 'A')}", StatusMessage.SideAlignment.Left));
                         break;
                     case GameModel.CellStatus.Unknown:
                         break;
@@ -597,6 +671,7 @@ namespace NetworkBattleships.Pages
                 {
                     TextBlockStatus.Text = "The Opponent\n is ready";
                 }
+
                 ListViewStatus.Items.Add(new StatusMessage("Opponent is ready", StatusMessage.SideAlignment.Right));
             });
         }
@@ -617,10 +692,18 @@ namespace NetworkBattleships.Pages
                 {
                     TextBlockStatus.Text = "The Opponent\n is preparing";
                 }
+
                 ListViewStatus.Items.Add(new StatusMessage("You are ready", StatusMessage.SideAlignment.Left));
             }
         }
 
+        /// <summary>
+        /// Reveals an opponents ship
+        /// </summary>
+        /// <param name="coord"></param>
+        /// <param name="orientation"></param>
+        /// <param name="type"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         private void OpponentShipSunk(Point coord, GameModel.Orientation orientation, GameModel.Types type)
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -675,13 +758,15 @@ namespace NetworkBattleships.Pages
                     default:
                         throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null);
                 }
+
                 switch (orientation)
                 {
                     case GameModel.Orientation.Up or GameModel.Orientation.Down:
                     {
                         for (int i = coord.Y; i < coord.Y + shipSize; i++)
                         {
-                            (OpponentGrid.Children[i * (FieldSide - 1) + coord.X] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
+                            (OpponentGrid.Children[i * (FieldSide - 1) + coord.X] as Button).Background =
+                                new SolidColorBrush(CurrentSunkButtonColor.Value);
                         }
 
                         break;
@@ -690,7 +775,8 @@ namespace NetworkBattleships.Pages
                     {
                         for (int i = coord.X; i < coord.X + shipSize; i++)
                         {
-                            (OpponentGrid.Children[coord.Y * (FieldSide - 1) + i] as Button).Background = new SolidColorBrush(CurrentSunkButtonColor.Value);
+                            (OpponentGrid.Children[coord.Y * (FieldSide - 1) + i] as Button).Background =
+                                new SolidColorBrush(CurrentSunkButtonColor.Value);
                         }
 
                         break;
@@ -698,9 +784,10 @@ namespace NetworkBattleships.Pages
                     default:
                         throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null);
                 }
-                
-                ListViewStatus.Items.Add(new StatusMessage($"You sunk Opponents {type}", StatusMessage.SideAlignment.Left));
-                
+
+                ListViewStatus.Items.Add(new StatusMessage($"You sunk Opponents {type}",
+                    StatusMessage.SideAlignment.Left));
+
                 if (Connector._GameModel.State == GameModel.GameState.Win)
                 {
                     TextBlockStatus.Text = "You won";

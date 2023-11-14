@@ -20,7 +20,10 @@ namespace NetworkBattleships.Pages
     /// </summary>
     public sealed partial class SetupPage : Page
     {
-        
+        /// <summary>
+        /// Looks for local ip addresses
+        /// Makes a request to https://api.ipify.org to get public ip 
+        /// </summary>
         private void GetIPs()
         {
             var foundIps = new List<IPAddress>();
@@ -54,6 +57,11 @@ namespace NetworkBattleships.Pages
         public Socket CurrentSocket;
         public Socket ClientSocket;
 
+        /// <summary>
+        /// Attempts to open as a server, if successful goes to gamepage 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eArgs"></param>
         private void OpenServer(object sender, RoutedEventArgs eArgs)
         {
             try
@@ -63,7 +71,7 @@ namespace NetworkBattleships.Pages
                 CurrentSocket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(ServerPort.Text)));
                 CurrentSocket.Listen(10);
                 ClientSocket = CurrentSocket.Accept();
-                Connector._GameModel = new GameModel(GameModel.Roles.Server, ClientSocket);
+                Connector._GameModel = new GameModel(ClientSocket);
             }
             catch (Exception e)
             {
@@ -84,6 +92,11 @@ namespace NetworkBattleships.Pages
             NextPage();
         }
 
+        /// <summary>
+        /// Attempts to open as a client, if successful goes to gamepage
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="routedEventArgs"></param>
         private void OpenClient(object sender, RoutedEventArgs routedEventArgs)
         {
             try
@@ -91,7 +104,7 @@ namespace NetworkBattleships.Pages
                 Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
                 CurrentSocket = client;
                 CurrentSocket.Connect(IPAddress.Parse(ClientIp.Text), int.Parse(ClientPort.Text));
-                Connector._GameModel = new GameModel(GameModel.Roles.Client, CurrentSocket);
+                Connector._GameModel = new GameModel(CurrentSocket);
             }
             catch (Exception e)
             {
