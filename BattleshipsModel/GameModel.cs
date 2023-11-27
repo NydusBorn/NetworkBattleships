@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Drawing;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BattleshipsModel;
@@ -106,6 +107,11 @@ public class GameModel
 
         Task.Run(MessageAwaiter);
     }
+    
+    private void LogMessage(string message)
+    {
+        Console.WriteLine($"[{DateTime.Now}] {message}");
+    }
 
     /// <summary>
     /// Places a ship on the player's grid
@@ -162,6 +168,7 @@ public class GameModel
             default:
                 throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null);
         }
+        LogMessage($"Added ship of type {type} at {coordinate} with orientation {orientation}");
     }
     /// <summary>
     /// Attempts to remove a ship from the player's grid part of which is at coordinates (xCoord, yCoord)
@@ -253,10 +260,11 @@ public class GameModel
                     default:
                         throw new ArgumentOutOfRangeException(nameof(ship.Item2), ship.Item2, null);
                 }
+                LogMessage($"Removed ship of type {type} at {ship.Item1} with orientation {ship.Item2}");
                 return type;
             }
         }
-
+        LogMessage($"No ship found at {xCoord}, {yCoord}");
         return type;
     }
     /// <summary>
@@ -269,6 +277,7 @@ public class GameModel
         if (CurrentMove % 2 != 0 || !EnemyReady) return;
         LastAction = $"sink {xCoord}{yCoord}";
         Connection.SendAsync(Encoding.Default.GetBytes(LastAction), SocketFlags.None);
+        LogMessage($"Sent attack on {xCoord}, {yCoord}");
         CurrentMove += 1;
     }
     /// <summary>
@@ -300,6 +309,7 @@ public class GameModel
         State = GameState.Playing;
         CurrentMove ??= (Random.Shared.NextDouble() < 0.5 ? 0 : 1);
         Connection.SendAsync(Encoding.Default.GetBytes($"ready {CurrentMove}"), SocketFlags.None);
+        LogMessage($"Sent ready, {CurrentMove switch{ 0 => "will move first", 1 => "will move second", _ => throw new Exception()}}");
     }
     /// <summary>
     /// Counter for the number of moves, move can be made only when the counter is an even number
@@ -335,11 +345,13 @@ public class GameModel
                 CurrentMove ??= int.Parse(message.Split(" ")[1]) == 1 ? 0 : 1;
                 EnemyReady = true;
                 OnOpponentReady?.Invoke(CurrentMove == 0);
+                LogMessage($"Received ready, {CurrentMove switch{ 0 => "will move first", 1 => "will move second", _ => throw new Exception()}}");
             }
             else if (message.Length >= 7 && message.Substring(0, 7) == "retract")
             {
                 // Opponent has fired on the cell that was already attacked before
                 CurrentMove -= 1;
+                LogMessage($"Player fired on an already attacked cell at {LastAction.Substring(5)}");
             }
             else if (message.Length >= 4 && message.Substring(0, 4) == "sink")
             {
@@ -351,6 +363,8 @@ public class GameModel
                 {
                     case CellStatus.Sunk or CellStatus.EmptyMiss or CellStatus.Unknown:
                         Connection.SendAsync(Encoding.Default.GetBytes("retract"), SocketFlags.None);
+                        CurrentMove -= 1;
+                        LogMessage($"Received attack on {xCoord}, {yCoord}, which was already attacked");
                         break;
                     case CellStatus.Alive:
                         PlayerGrid[xCoord][yCoord] = CellStatus.Sunk;
@@ -367,7 +381,6 @@ public class GameModel
                                     break;
                                 case Types.Battleship:
                                     shipSize = 4;
-
                                     break;
                                 case Types.Carrier:
                                     shipSize = 5;
@@ -447,11 +460,13 @@ public class GameModel
                                     PlayerRevealedShips += 1;
                                     Connection.SendAsync(Encoding.Default.GetBytes($"reveal {ship.Item1.X}{ship.Item1.Y} {ship.Item2} {ship.Item3}"), SocketFlags.None);
                                     OnReceive?.Invoke(xCoord, yCoord, ship.Item3, true);
+                                    LogMessage($"Revealed a destroyed {ship.Item3}");
                                 }
                                 else
                                 {
                                     Connection.SendAsync(Encoding.Default.GetBytes("hit"), SocketFlags.None);
                                     OnReceive?.Invoke(xCoord, yCoord, ship.Item3, false);
+                                    LogMessage($"Received a hit on {ship.Item3} at {xCoord}, {yCoord}");
                                 }
                             }
                         }
@@ -460,6 +475,7 @@ public class GameModel
                         PlayerGrid[xCoord][yCoord] = CellStatus.EmptyMiss;
                         Connection.SendAsync(Encoding.Default.GetBytes("miss"), SocketFlags.None);
                         OnReceive?.Invoke(xCoord, yCoord, Types.None, false);
+                        LogMessage($"Opponent missed at {xCoord}, {yCoord}");
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -469,6 +485,7 @@ public class GameModel
                 if (PlayerRevealedShips == 5)
                 {
                     State = GameState.Loss;
+                    LogMessage("Player has lost");
                     return;
                 }
             }
@@ -480,6 +497,7 @@ public class GameModel
                 int yCoord = coordinate[1] - '0';
                 OpponentGrid[xCoord][yCoord] = CellStatus.Sunk;
                 OnAttack?.Invoke(xCoord, yCoord);
+                LogMessage($"Successfully hit at {xCoord}, {yCoord}");
             }
             else if (message.Length >= 4 && message.Substring(0, 4) == "miss")
             {
@@ -489,6 +507,7 @@ public class GameModel
                 int yCoord = coordinate[1] - '0';
                 OpponentGrid[xCoord][yCoord] = CellStatus.EmptyMiss;
                 OnAttack?.Invoke(xCoord, yCoord);
+                LogMessage($"Missed at {xCoord}, {yCoord}");
             }
             else if (message.Length >= 6 && message.Substring(0, 6) == "reveal")
             {
@@ -515,9 +534,11 @@ public class GameModel
                 };
                 OpponentShips.Add((new Point(xCoord, yCoord), orient, shipType));
                 OnOpponentShipSunk?.Invoke(new Point(xCoord, yCoord), orient, shipType);
+                LogMessage($"Sunk opponents {shipType} at {xCoord}, {yCoord} with orientation {orient}");
                 if (OpponentShips.Count == 5)
                 {
                     State = GameState.Win;
+                    LogMessage("Player has won");
                     return;
                 }
             }
